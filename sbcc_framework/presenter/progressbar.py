@@ -1,0 +1,104 @@
+# SPDX-FileCopyrightText: Copyright 2026 The Secureblue Authors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+import dataclasses
+
+from abc import ABC, abstractmethod
+from sbcc_framework import PresenterInterface
+
+
+@dataclasses.dataclass
+class ProgressBar(ABC):
+    """
+    A progress bar. Can show progress and a context above the progress bar.
+    """
+
+    _presenter: PresenterInterface
+
+    def show(self) -> None:
+        """
+        Shows this progress bar to the user.\n
+        No other presenter actions may be performed while this progress bar is active.
+        Must not be called while the underlying presenter is already blocked.
+        """
+        if self._presenter.is_blocked():
+            raise RuntimeError("Illegal action on blocked presenter")
+        self._show()
+
+    @abstractmethod
+    def _show(self) -> None:
+        pass
+
+    @abstractmethod
+    def close(self) -> None:
+        """
+        Closes this progress bar.\n
+        The progress bar may not be reused after this method has been called.
+        """
+        pass
+
+    @abstractmethod
+    def is_active(self) -> bool:
+        """
+        Retrieves whether this progress bar is active. (i.e. currently being shown to the user)
+        :returns: Whether this progress bar is active.
+        """
+        pass
+
+    @abstractmethod
+    def get_progress(self) -> float:
+        """
+        Retrieves the progress of this progress bar, from 0.0 to 1.0.
+        :returns: The current progress.
+        """
+        pass
+
+    @abstractmethod
+    def set_progress(self, value: float) -> None:
+        """
+        Sets the progress of this progress bar, from 0.0 to 1.0.
+        :param value: The progress to show.
+        """
+        pass
+
+    @abstractmethod
+    def add_progress(self, value: float) -> None:
+        """
+        Increments the progress of this progress bar.
+        :param value: The progress to add.
+        """
+        pass
+
+    @abstractmethod
+    def get_context(self) -> str:
+        """
+        Retrieves the context shown above the progress bar.
+        :returns: The current context.
+        """
+        pass
+
+    @abstractmethod
+    def set_context(self, context: str) -> None:
+        """
+        Sets the context shown above the progress bar.
+        :param context: The context to show.
+        """
+        pass
+
+    @abstractmethod
+    def get_pulse(self) -> bool:
+        """
+        Retrieves the pulse mode of this progress bar.
+        :return:  The current pulse mode.
+        """
+        pass
+
+    @abstractmethod
+    def set_pulse(self, mode: bool) -> None:
+        """
+        Sets the pulse mode of this progress bar.\n
+        In pulse mode no specific progress will be shown, useful to indicate loading of unknown progress.
+        :param mode: The pulse mode (on/off).
+        """
+        pass
