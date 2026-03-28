@@ -21,5 +21,5 @@ CLI frontend and implementation of the framework.
 GUI frontend and implementation of the framework.
 ### `sbcc`
 Application core and main entry point.
-### `sbbc/features`
+### `sbcc/features`
 Feature scripts
