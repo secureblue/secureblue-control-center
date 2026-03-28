@@ -93,29 +93,29 @@ class CompiledFeature[T]:
 
     def supports_cli(self) -> bool:
         """
-        Retrieves whether this feature supports CLI.
-        :return: Whether this feature supports CLI.
+        Retrieves whether this feature supports CLI frontend.
+        :return: Whether this feature supports CLI frontend.
         """
         return self.supports == UI.ANY or self.supports == UI.CLI
 
     def supports_gui(self) -> bool:
         """
-        Retrieves whether this feature supports GUI.
-        :return: Whether this feature supports GUI.
+        Retrieves whether this feature supports GUI frontend.
+        :return: Whether this feature supports GUI frontend.
         """
         return self.supports == UI.ANY or self.supports == UI.GUI
 
     def supports_server(self) -> bool:
         """
-        Retrieves whether this feature supports server.
-        :return: Whether this feature supports server.
+        Retrieves whether this feature supports server environment.
+        :return: Whether this feature supports server environment.
         """
         return self.environment == Environment.ANY or self.environment == Environment.SERVER
 
     def supports_desktop(self) -> bool:
         """
-        Retrieves whether this feature supports desktop.
-        :return: Whether this feature supports desktop.
+        Retrieves whether this feature supports desktop environment.
+        :return: Whether this feature supports desktop environment.
         """
         return self.environment == Environment.ANY or self.environment == Environment.DESKTOP
 
