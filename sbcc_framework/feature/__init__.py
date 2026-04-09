@@ -12,7 +12,7 @@ from util import gettext_marker, has_gui
 _: Final = gettext_marker()
 
 
-class UI(Enum):
+class Frontend(Enum):
     """
     Which frontend this feature supports. (e.g. for CLI-only features)
     """
@@ -87,7 +87,7 @@ class CompiledFeature[T]:
     display_name: str
     description: str
     category: Category
-    supports: UI
+    frontend: Frontend
     environment: Environment
     feature: T
 
@@ -96,14 +96,14 @@ class CompiledFeature[T]:
         Retrieves whether this feature supports CLI frontend.
         :return: Whether this feature supports CLI frontend.
         """
-        return self.supports == UI.ANY or self.supports == UI.CLI
+        return self.frontend == Frontend.ANY or self.frontend == Frontend.CLI
 
     def supports_gui(self) -> bool:
         """
         Retrieves whether this feature supports GUI frontend.
         :return: Whether this feature supports GUI frontend.
         """
-        return self.supports == UI.ANY or self.supports == UI.GUI
+        return self.frontend == Frontend.ANY or self.frontend == Frontend.GUI
 
     def supports_server(self) -> bool:
         """
@@ -132,7 +132,7 @@ class CompiledFeature[T]:
 
 def feature(
         name: str, display_name: str, description: str, category: Category = DEFAULT_CATEGORY,
-        supports: UI = UI.ANY, environment: Environment = Environment.ANY
+        frontend: Frontend = Frontend.ANY, environment: Environment = Environment.ANY
 ) -> Callable[[type[Feature]], type[Feature]]:
     """
     Compiles and registers a feature with metadata.
@@ -140,7 +140,7 @@ def feature(
     :param display_name: The display name of the feature.
     :param description: The description of the feature.
     :param category: The category of the feature.
-    :param supports: Which UI frontends this feature supports.
+    :param frontend: Which UI frontends this feature supports.
     :param environment: Which environments this feature supports.
     """
 
@@ -153,7 +153,7 @@ def feature(
             display_name=display_name,
             description=description,
             category=category,
-            supports=supports,
+            frontend=frontend,
             environment=environment,
             feature=_feature()
         )

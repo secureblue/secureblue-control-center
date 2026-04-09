@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from sbcc_framework.feature import feature, UI
+from sbcc_framework.feature import feature, Frontend
 from sbcc_framework.feature.utility import Utility
 from sbcc_framework.presenter import Presenter
 
@@ -11,7 +11,7 @@ from sbcc_framework.presenter import Presenter
     name="error",
     display_name="Error Utility",
     description="Will throw an exception in the feature script, demonstrating error handling",
-    supports=UI.GUI
+    frontend=Frontend.GUI
 )
 class ErrorUtil(Utility):
     def run(self, presenter: Presenter) -> int | None:
