@@ -13,10 +13,10 @@ class CLIChooser(Chooser):
     context: str | None = None
 
     def get_context(self) -> str:
-        return self.context
+        return self.context if self.context is not None else ""
 
     def set_context(self, context: str) -> None:
-        self.context = context
+        self.context = context if context != "" else None
 
     def _choose(self) -> str:
         self._presenter.block()
