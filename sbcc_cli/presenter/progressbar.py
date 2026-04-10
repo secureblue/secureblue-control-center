@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import sys
-import threading
 
+from threading import Thread
 from time import sleep
 from sbcc_framework.presenter.progressbar import ProgressBar
 
@@ -22,7 +22,6 @@ class CLIProgressBar(ProgressBar):
     pulse_dir: int = 1
     pulse_pos: int = 0
     changed: bool = False
-    task: threading.Thread | None = None
     render_interval: float = 0.1
     width: int = 50
 
@@ -32,14 +31,13 @@ class CLIProgressBar(ProgressBar):
         self.active = True
 
         self._presenter.block()
-        self.task = threading.Thread(target=self.tick, daemon=True)
         print()
         if self.context is not None:
             self.print_context()
             self.printed_header = True
         self.print_bar()
         self.changed = False
-        self.task.start()
+        Thread(target=self.tick, daemon=True).start()
 
     def close(self) -> None:
         if not self.active:
@@ -61,14 +59,16 @@ class CLIProgressBar(ProgressBar):
 
     def set_progress(self, value: float) -> None:
         self.progress = value
+        self.pulse = False
         self.changed = True
 
     def add_progress(self, value: float) -> None:
         self.progress += value
+        self.pulse = False
         self.changed = True
 
     def get_context(self) -> str:
-        return self.context
+        return self.context if self.context is not None else ""
 
     def set_context(self, context: str) -> None:
         self.context = context if context != "" else None
@@ -135,6 +135,8 @@ class CLIProgressBar(ProgressBar):
         print("]")
 
     def print_context(self) -> None:
+        if self.context is None:
+            raise ValueError("Context is None.")
         length = len(self.context)
         if self.context[-3:] == "...":
             # Context ending in "..." looks better if slightly centered more to the right,

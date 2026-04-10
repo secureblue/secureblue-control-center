@@ -21,7 +21,6 @@ class GUIProgressBar(ProgressBar):
     progress: float = 0
     context: str = ""
     pulse: bool = False
-    pulse_thread: Thread | None = None
 
     def __init__(self, presenter: PresenterInterface, main_window: Toastable, compiled: CompiledFeature):
         super().__init__(presenter)
@@ -79,7 +78,6 @@ class GUIProgressBar(ProgressBar):
     def add_progress(self, value: float) -> None:
         new_value = self.get_progress() + value
         self.set_progress(new_value)
-        self.progress = new_value
 
     def get_context(self) -> str:
         return self.context
@@ -95,9 +93,12 @@ class GUIProgressBar(ProgressBar):
         return self.pulse
 
     def set_pulse(self, mode: bool) -> None:
+        if mode == self.pulse:
+            return
+
         self.pulse = mode
         if mode:
-            self.pulse_thread = Thread(target=self.tick_pulse).start()
+            Thread(target=self.tick_pulse).start()
         else:
             self.set_progress(self.progress)
 
