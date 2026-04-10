@@ -18,7 +18,6 @@ class BaseDialog(Adw.AlertDialog):
 
         self.cancel_func = cancel_func
 
-        self.connect("response", self._on_response)
         self.connect("response", self._on_response_internal)
 
     @abstractmethod
@@ -29,6 +28,8 @@ class BaseDialog(Adw.AlertDialog):
     def _on_response_internal(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id == "close" and self.cancel_func:
             self.cancel_func()
+            return
+        self._on_response(dialog, response_id)
 
 
 class TextDialog(BaseDialog):
