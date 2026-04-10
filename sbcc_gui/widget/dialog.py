@@ -24,7 +24,6 @@ class BaseDialog(Adw.AlertDialog):
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         pass
 
-    # noinspection PyUnusedLocal
     def _on_response_internal(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id == "close" and self.cancel_func:
             self.cancel_func()
@@ -43,7 +42,6 @@ class TextDialog(BaseDialog):
         self.add_response("ok", _("Ok"))
         self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
 
-    # noinspection PyUnusedLocal
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id == "ok":
             self.callback()
@@ -65,7 +63,6 @@ class BooleanDialog(BaseDialog):
 
         self.set_prefer_wide_layout(True)
 
-    # noinspection PyUnusedLocal
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id in ["yes", "no"]:
             self.callback(response_id == "yes")
@@ -88,7 +85,6 @@ class InputDialog(BaseDialog):
         self.add_response("ok", _("Ok"))
         self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
 
-    # noinspection PyUnusedLocal
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id == "ok":
             self.callback(self.entry_row.get_text())
@@ -111,7 +107,6 @@ class PasswordDialog(BaseDialog):
         self.add_response("ok", _("Ok"))
         self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
 
-    # noinspection PyUnusedLocal
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id == "ok":
             self.callback(self.entry_row.get_text())
@@ -175,7 +170,6 @@ class ChooserDialog(BaseDialog):
         if self.list_box.get_selected_row() is None:
             self.list_box.select_row(row)
 
-    # noinspection PyUnusedLocal
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if self.callback and response_id == "submit":
             self.callback(self.list_box.get_selected_row().get_name())
@@ -195,6 +189,5 @@ class FatalErrorDialog(BaseDialog):
         self.add_response("exit", _("Close Application"))
         self.set_response_appearance("exit", Adw.ResponseAppearance.DESTRUCTIVE)
 
-    # noinspection PyUnusedLocal
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         self.callback()
