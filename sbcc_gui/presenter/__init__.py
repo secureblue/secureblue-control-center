@@ -78,6 +78,9 @@ class GUIPresenter(Presenter, PresenterInterface):
         return result[0]
 
     def _show_prompt_input(self, prompt_text: str) -> str:
+        return self.__show_prompt_str(InputDialog, prompt_text)
+
+    def __show_prompt_str(self, dialog_type: type[InputDialog], prompt_text: str) -> str:
         self.block()
 
         def show_dialog(text: str, _event: Event, _result: list[Any]):
@@ -89,7 +92,7 @@ class GUIPresenter(Presenter, PresenterInterface):
                 _result[1] = False
                 _event.set()
 
-            dialog = InputDialog(heading=self.compiled.display_name, body=text, callback=apply, cancel_func=cancel)
+            dialog = dialog_type(heading=self.compiled.display_name, body=text, callback=apply, cancel_func=cancel)
             dialog.choose(self.main_window.get_window())
 
         result: list[Any] = ["", True]
