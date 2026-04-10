@@ -83,7 +83,7 @@ class GUIPresenter(Presenter, PresenterInterface):
     def _show_prompt_password(self, prompt_text: str) -> str:
         return self.__show_prompt_str(PasswordDialog, prompt_text)
 
-    def __show_prompt_str(self, dialog_type: type[InputDialog | PasswordDialog], prompt_text: str) -> str:
+    def __show_prompt_str(self, dialog_type: type[InputDialog], prompt_text: str) -> str:
         self.block()
 
         def show_dialog(text: str, _event: Event, _result: list[Any]):

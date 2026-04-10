@@ -90,26 +90,9 @@ class InputDialog(BaseDialog):
             self.callback(self.entry_row.get_text())
 
 
-class PasswordDialog(BaseDialog):
-    callback: Callable[[str], Any] | None
-    entry_row: Adw.PasswordEntryRow
-
-    def __init__(self, callback: Callable[[str], Any] = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.callback = callback
-
-        self.entry_row = Adw.PasswordEntryRow(title=_("Enter password"))
-        group = Adw.PreferencesGroup()
-        group.add(self.entry_row)
-        self.set_extra_child(group)
-
-        self.add_response("ok", _("Ok"))
-        self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
-
-    def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        if response_id == "ok":
-            self.callback(self.entry_row.get_text())
+class PasswordDialog(InputDialog):
+    def __init__(self, *args, **kwargs):
+        super().__init__(entry_row=Adw.PasswordEntryRow(title=_("Enter password")), *args, **kwargs)
 
 
 class ProgressDialog(BaseDialog):
