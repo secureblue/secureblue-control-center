@@ -66,6 +66,20 @@ class Presenter(ABC):
     def _show_prompt_input(self, prompt_text: str) -> str:
         pass
 
+    def show_prompt_password(self, prompt_text: str) -> str:
+        """
+        Prompts the user for password input. Blocks until the user submits their input.\n
+        Must not be called while the presenter is blocked.
+        :param prompt_text: The prompt text to show.
+        :returns: The user password input.
+        """
+        self._ensure_unblocked()
+        return self._show_prompt_password(prompt_text)
+
+    @abstractmethod
+    def _show_prompt_password(self, prompt_text: str) -> str:
+        pass
+
     @abstractmethod
     def create_progress_bar(self) -> ProgressBar:
         """

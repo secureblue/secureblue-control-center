@@ -12,7 +12,7 @@ from sbcc_gui.presenter.progressbar import GUIProgressBar
 from gi.repository import Adw, GLib
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import Chooser, Presenter, ProgressBar
-from sbcc_gui.widget.dialog import BooleanDialog, InputDialog, TextDialog
+from sbcc_gui.widget.dialog import BooleanDialog, InputDialog, TextDialog, PasswordDialog
 from sbcc_gui.window import Toastable
 
 
@@ -80,7 +80,10 @@ class GUIPresenter(Presenter, PresenterInterface):
     def _show_prompt_input(self, prompt_text: str) -> str:
         return self.__show_prompt_str(InputDialog, prompt_text)
 
-    def __show_prompt_str(self, dialog_type: type[InputDialog], prompt_text: str) -> str:
+    def _show_prompt_password(self, prompt_text: str) -> str:
+        return self.__show_prompt_str(PasswordDialog, prompt_text)
+
+    def __show_prompt_str(self, dialog_type: type[InputDialog | PasswordDialog], prompt_text: str) -> str:
         self.block()
 
         def show_dialog(text: str, _event: Event, _result: list[Any]):

@@ -45,6 +45,12 @@ class CLIPresenter(Presenter, PresenterInterface):
         self.unblock()
         return choice
 
+    def _show_prompt_password(self, prompt_text: str) -> str:
+        self.block()
+        password = getpass.getpass(prompt_text + ": ")
+        self.unblock()
+        return password
+
     def create_progress_bar(self) -> ProgressBar:
         return CLIProgressBar(self)
 
