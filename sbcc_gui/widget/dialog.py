@@ -12,6 +12,7 @@ _: Final = gettext_marker()
 
 class BaseDialog(Adw.AlertDialog):
     cancel_func: Callable[..., Any] | None
+    had_response: bool = False
 
     def __init__(self, cancel_func: Callable[..., Any] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -25,9 +26,10 @@ class BaseDialog(Adw.AlertDialog):
         pass
 
     def _on_response_internal(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        if response_id == "close" and self.cancel_func:
+        if not self.had_response and response_id == "close" and self.cancel_func:
             self.cancel_func()
             return
+        self.had_response = True
         self._on_response(dialog, response_id)
 
 
