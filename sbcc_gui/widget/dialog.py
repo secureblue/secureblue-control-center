@@ -72,12 +72,12 @@ class InputDialog(BaseDialog):
     callback: Callable[[str], Any] | None
     entry_row: Adw.EntryRow
 
-    def __init__(self, callback: Callable[[str], Any] = None, *args, **kwargs):
+    def __init__(self, entry_row: Adw.EntryRow | None = None, callback: Callable[[str], Any] = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.callback = callback
 
-        self.entry_row = Adw.EntryRow(title=_("Enter text"))
+        self.entry_row = Adw.EntryRow(title=_("Enter text")) if entry_row is None else entry_row
         group = Adw.PreferencesGroup()
         group.add(self.entry_row)
         self.set_extra_child(group)
