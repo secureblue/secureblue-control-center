@@ -29,13 +29,13 @@ class Sidebar(Adw.Bin):
         :param entry: The entry to add.
         :param callback: The callback to invoke when the row is selected.
         """
+        if entry.get_name() == "GtkListBoxRow":
+            raise ValueError("Entry must have a unique name")
         self.callbacks[entry.get_name()] = callback
         self.sidebar.append(entry)
 
     # noinspection PyUnusedLocal
     def _on_row_activated(self, listbox: Gtk.ListBox, row: Gtk.ListBoxRow) -> None:
         name = row.get_name()
-        if name == "GtkListBoxRow":
-            raise ValueError("ListBoxRow must have a unique name")
         if name in self.callbacks:
             self.callbacks.get(name)()
