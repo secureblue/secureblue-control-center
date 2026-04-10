@@ -97,6 +97,7 @@ class GUIPresenter(Presenter, PresenterInterface):
 
             dialog = dialog_type(heading=self.compiled.display_name, body=text, callback=apply, cancel_func=cancel)
             dialog.choose(self.main_window.get_window())
+            dialog.focus_input()
 
         result: list[Any] = ["", True]
         event = Event()

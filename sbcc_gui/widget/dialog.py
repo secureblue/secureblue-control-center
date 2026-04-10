@@ -89,6 +89,9 @@ class InputDialog(BaseDialog):
 
         self.entry_row.connect("entry-activated", self._on_activate)
 
+    def focus_input(self) -> None:
+        self.entry_row.grab_focus()
+
     # noinspection PyUnusedLocal
     def _on_activate(self, entry_row: Adw.EntryRow) -> None:
         self.emit("response", "ok")
