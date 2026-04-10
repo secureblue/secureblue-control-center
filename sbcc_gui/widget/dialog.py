@@ -87,6 +87,13 @@ class InputDialog(BaseDialog):
         self.add_response("ok", _("Ok"))
         self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
 
+        self.entry_row.connect("entry-activated", self._on_activate)
+
+    # noinspection PyUnusedLocal
+    def _on_activate(self, entry_row: Adw.EntryRow) -> None:
+        self.emit("response", "ok")
+        self.close()
+
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id == "ok":
             self.callback(self.entry_row.get_text())
