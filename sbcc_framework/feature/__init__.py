@@ -5,7 +5,7 @@
 import dataclasses
 
 from abc import ABC
-from enum import Enum
+from enum import Enum, auto
 from typing import Callable, Final, List
 from util import gettext_marker, has_gui
 
@@ -16,11 +16,11 @@ class Frontend(Enum):
     """
     Which frontend this feature supports. (e.g. for CLI-only features)
     """
-    CLI = 0
+    CLI = auto()
     """Indicates support only for CLI frontend."""
-    GUI = 1
+    GUI = auto()
     """Indicates support only for GUI frontend."""
-    ANY = 2
+    ANY = auto()
     """Indicates support for both CLI and GUI frontends."""
 
 
@@ -28,11 +28,11 @@ class Environment(Enum):
     """
     Which environment this feature supports. (e.g. for server-only features)
     """
-    SERVER = 1
+    SERVER = auto()
     """Indicates support only for server environment."""
-    DESKTOP = 2
+    DESKTOP = auto()
     """Indicates support only for desktop environment."""
-    ANY = 3
+    ANY = auto()
     """Indicates support for both server and desktop environments."""
 
 
