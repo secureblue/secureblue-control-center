@@ -36,6 +36,18 @@ class Environment(Enum):
     """Indicates support for both server and desktop environments."""
 
 
+class BooleanResponse(Enum):
+    """
+    Convenience enum representing boolean responses.
+    """
+    NONE = auto()
+    """Equivalent to None"""
+    YES = auto()
+    """Equivalent to True"""
+    NO = auto()
+    """Equivalent to False"""
+
+
 @dataclasses.dataclass
 class Category:
     """

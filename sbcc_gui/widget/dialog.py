@@ -5,6 +5,7 @@
 from abc import abstractmethod
 from typing import Any, Callable, Final
 from gi.repository import Gtk, Adw
+from sbcc_framework.feature import BooleanResponse
 from util import gettext_marker
 
 _: Final = gettext_marker()
@@ -52,16 +53,23 @@ class TextDialog(BaseDialog):
 class BooleanDialog(BaseDialog):
     callback: Callable[[bool], Any] | None
 
-    def __init__(self, callback: Callable[[bool], Any] = None, *args, **kwargs):
+    def __init__(self, callback: Callable[[bool], Any] = None, default: BooleanResponse = BooleanResponse.NONE,
+                 suggested: BooleanResponse = BooleanResponse.NONE, destructive: BooleanResponse = BooleanResponse.NONE,
+                 *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.callback = callback
 
         self.add_response("no", _("No"))
-        # self.set_response_appearance("no", Adw.ResponseAppearance.DESTRUCTIVE)
-
         self.add_response("yes", _("Yes"))
-        # self.set_response_appearance("yes", Adw.ResponseAppearance.SUGGESTED)
+
+        if default is not BooleanResponse.NONE:
+            self.set_default_response("yes" if default is BooleanResponse.YES else "no")
+
+        for response, appearance in [(suggested, Adw.ResponseAppearance.SUGGESTED),
+                                     (destructive, Adw.ResponseAppearance.DESTRUCTIVE)]:
+            if response is not BooleanResponse.NONE:
+                self.set_response_appearance("yes" if response is BooleanResponse.YES else "no", appearance)
 
         self.set_prefer_wide_layout(True)
 

@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from abc import ABC, abstractmethod
+from sbcc_framework.feature import BooleanResponse
 from sbcc_framework.presenter.chooser import Chooser
 from sbcc_framework.presenter.progressbar import ProgressBar
 
@@ -38,18 +39,27 @@ class Presenter(ABC):
     def _show_prompt_text(self, prompt_text: str) -> None:
         pass
 
-    def show_prompt_boolean(self, prompt_text: str) -> bool:
+    def show_prompt_boolean(self, prompt_text: str, default: BooleanResponse = BooleanResponse.NONE,
+                            suggested: BooleanResponse = BooleanResponse.NONE,
+                            destructive: BooleanResponse = BooleanResponse.NONE) -> bool:
         """
         Shows a yes/no prompt to the user. Blocks until the user made their choice.\n
         Must not be called while the presenter is blocked.
         :param prompt_text: The prompt text to show.
+        :param default: The default response to pre-select.
+        :param suggested: The suggested response to highlight. Should be used to indicate safe responses, or equivalent.
+        :param destructive: The destructive response to highlight. Should be used to indicate dangerous responses,
+          or equivalent.
         :returns: The user choice.
         """
+        if suggested is not BooleanResponse.NONE and suggested == destructive:
+            raise ValueError("Suggested and destructive responses cannot be the same.")
         self._ensure_unblocked()
-        return self._show_prompt_boolean(prompt_text)
+        return self._show_prompt_boolean(prompt_text, default, suggested, destructive)
 
     @abstractmethod
-    def _show_prompt_boolean(self, prompt_text: str) -> bool:
+    def _show_prompt_boolean(self, prompt_text: str, default: BooleanResponse, suggested: BooleanResponse,
+                             destructive: BooleanResponse) -> bool:
         pass
 
     def show_prompt_input(self, prompt_text: str) -> str:

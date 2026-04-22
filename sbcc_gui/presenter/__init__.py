@@ -10,7 +10,7 @@ from sbcc_framework import PresenterInterface
 from sbcc_gui.presenter.chooser import GUIChooser
 from sbcc_gui.presenter.progressbar import GUIProgressBar
 from gi.repository import Adw, GLib
-from sbcc_framework.feature import CompiledFeature
+from sbcc_framework.feature import CompiledFeature, BooleanResponse
 from sbcc_framework.presenter import Chooser, Presenter, ProgressBar
 from sbcc_gui.widget.dialog import BooleanDialog, InputDialog, TextDialog, PasswordDialog
 from sbcc_gui.window import Toastable
@@ -50,7 +50,8 @@ class GUIPresenter(Presenter, PresenterInterface):
 
         self.unblock()
 
-    def _show_prompt_boolean(self, prompt_text: str) -> bool:
+    def _show_prompt_boolean(self, prompt_text: str, default: BooleanResponse, suggested: BooleanResponse,
+                             destructive: BooleanResponse) -> bool:
         self.block()
 
         def show_dialog(text: str, _event: Event, _result: list[bool]):
@@ -62,7 +63,8 @@ class GUIPresenter(Presenter, PresenterInterface):
                 _result[1] = False
                 _event.set()
 
-            dialog = BooleanDialog(heading=self.compiled.display_name, body=text, callback=apply, cancel_func=cancel)
+            dialog = BooleanDialog(heading=self.compiled.display_name, body=text, callback=apply, default=default,
+                                   suggested=suggested, destructive=destructive, cancel_func=cancel)
             dialog.choose(self.main_window.get_window())
 
         result: list[bool] = [False, True]
