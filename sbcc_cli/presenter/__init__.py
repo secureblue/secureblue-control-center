@@ -21,7 +21,6 @@ _: Final = gettext_marker()
 ANSI_BLUE = "\033[94m"
 ANSI_RED = "\033[91m"
 ANSI_RESET = "\033[0m"
-ANSI_CURSOR_UP = "\033[F"
 ANSI_REMEMBER_CURSOR = "\0337"
 ANSI_RESTORE_CURSOR = "\0338"
 
