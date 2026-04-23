@@ -15,8 +15,6 @@ from gi.repository import GLib
 class GUIChooser(Chooser):
     main_window: Toastable
     compiled: CompiledFeature
-    dialog: ChooserDialog
-    # We cache states such that the getters don't have to be blocking
     context: str = ""
 
     def __init__(self, presenter: PresenterInterface, main_window: Toastable, compiled: CompiledFeature):
@@ -25,16 +23,10 @@ class GUIChooser(Chooser):
         self.main_window = main_window
         self.compiled = compiled
 
-        self.dialog = ChooserDialog(heading=self.compiled.display_name)
-
     def get_context(self) -> str:
         return self.context
 
     def set_context(self, context: str) -> None:
-        def apply_context(_context: str) -> None:
-            self.dialog.set_body(_context)
-
-        GLib.idle_add(apply_context, context)
         self.context = context
 
     def _choose(self) -> str:
@@ -49,10 +41,12 @@ class GUIChooser(Chooser):
                 _result[1] = False
                 _event.set()
 
-            for key, value in self._options.items():
-                self.dialog.add_option(key, value)
+            dialog = ChooserDialog(heading=self.compiled.display_name, body=self.context)
 
-            self.dialog.choose_callback(self.main_window.get_window(), apply, cancel)
+            for key, value in self._options.items():
+                dialog.add_option(key, value)
+
+            dialog.choose_callback(self.main_window.get_window(), apply, cancel)
 
         result: list[Any] = ["", True]
         event = Event()

@@ -28,7 +28,13 @@ class GUIProgressBar(ProgressBar):
         self.main_window = main_window
         self.compiled = compiled
 
-        self.dialog = ProgressDialog(heading=self.compiled.display_name)
+        def construct_dialog(_event: Event) -> None:
+            self.dialog = ProgressDialog(heading=self.compiled.display_name)
+            _event.set()
+
+        event = Event()
+        GLib.idle_add(construct_dialog, event)
+        event.wait()
 
     def _show(self) -> None:
         if self.active:
