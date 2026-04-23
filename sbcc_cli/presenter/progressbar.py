@@ -7,10 +7,7 @@ import sys
 from threading import Thread
 from time import sleep
 from sbcc_framework.presenter.progressbar import ProgressBar
-
-
-ANSI_CURSOR_UP = "\033[F"
-ANSI_CLEAR_LINE = "\033[K"
+from util import ANSI_CURSOR_UP, ANSI_CLEAR_LINE
 
 
 class CLIProgressBar(ProgressBar):

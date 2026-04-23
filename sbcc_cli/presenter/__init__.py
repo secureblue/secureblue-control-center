@@ -13,16 +13,10 @@ from sbcc_framework.feature import BooleanResponse
 from sbcc_framework.presenter import Presenter
 from sbcc_framework.presenter.chooser import Chooser
 from sbcc_framework.presenter.progressbar import ProgressBar
-from util import gettext_marker, interruptible_ask
+from util import gettext_marker, interruptible_ask, ANSI_BLUE, ANSI_RED, ANSI_RESET, ANSI_REMEMBER_CURSOR, \
+    ANSI_RESTORE_CURSOR
 
 _: Final = gettext_marker()
-
-
-ANSI_BLUE = "\033[94m"
-ANSI_RED = "\033[91m"
-ANSI_RESET = "\033[0m"
-ANSI_REMEMBER_CURSOR = "\0337"
-ANSI_RESTORE_CURSOR = "\0338"
 
 
 class CLIPresenter(Presenter, PresenterInterface):
