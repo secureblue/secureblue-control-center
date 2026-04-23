@@ -142,20 +142,16 @@ class ChooserDialog(BaseDialog):
     callback: Callable[[str], Any] | None = None
     list_box: Gtk.ListBox
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, callback: Callable[[str], Any], *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.callback = callback
 
         self.list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
         self.set_extra_child(self.list_box)
 
         self.add_response("submit", _("Confirm"))
         self.set_response_appearance("submit", Adw.ResponseAppearance.SUGGESTED)
-
-    def choose_callback(self, parent: Adw.ApplicationWindow, callback: Callable[[str], Any],
-                        cancel_func: Callable[..., Any]):
-        self.callback = callback
-        self.cancel_func = cancel_func
-        self.choose(parent)
 
     def add_option(self, key: str, value: str) -> None:
         row = Adw.ButtonRow(

@@ -41,12 +41,13 @@ class GUIChooser(Chooser):
                 _result[1] = False
                 _event.set()
 
-            dialog = ChooserDialog(heading=self.compiled.display_name, body=self.context)
+            dialog = ChooserDialog(heading=self.compiled.display_name, body=self.context, callback=apply,
+                                   cancel_func=cancel)
 
             for key, value in self._options.items():
                 dialog.add_option(key, value)
 
-            dialog.choose_callback(self.main_window.get_window(), apply, cancel)
+            dialog.choose(self.main_window.get_window())
 
         result: list[Any] = ["", True]
         event = Event()
