@@ -84,6 +84,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             lambda: self.stack.set_visible_child_name("toggles")
         )
 
+        # Utilities Page
         self.utilities_page = UtilitiesPage(main_window=self)
         self.stack.add_named(self.utilities_page, "utilities")
         self.sidebar.add_entry(
