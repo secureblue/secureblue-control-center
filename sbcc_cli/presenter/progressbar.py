@@ -34,7 +34,7 @@ class CLIProgressBar(ProgressBar):
             self.printed_header = True
         self.print_bar()
         self.changed = False
-        Thread(target=self.tick, daemon=True).start()
+        Thread(name="sbcc_cli:progressbar", target=self.tick, daemon=True).start()
 
     def close(self) -> None:
         if not self.active:

@@ -31,7 +31,8 @@ class UtilitiesPage(FeaturesPage):
             callback=callback
         )
 
-        Thread(target=self.set_initial_state, args=(compiled, wrapper), daemon=True).start()
+        Thread(name=f"sbcc_gui:{compiled.name}:set-initial-state", target=self.set_initial_state,
+               args=(compiled, wrapper)).start()
 
         self.categories[category_name].add(wrapper.get_row())
 

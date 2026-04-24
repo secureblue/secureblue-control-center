@@ -122,7 +122,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
                     _result: list[bool] = [False]
                     event = Event()
-                    Thread(target=get_state, args=(event, _result), daemon=True).start()
+                    Thread(name=f"sbcc_gui:{__capture.name}:get-state", target=get_state, args=(event, _result)).start()
                     event.wait()
                     GLib.idle_add(apply_result, _result[0])
 
@@ -138,7 +138,8 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
                 GLib.idle_add(apply_result, result)
 
-            Thread(target=do_toggle, args=(wrapper.get_row().get_active(),), daemon=True).start()
+            Thread(name=f"sbcc_gui:{__capture.name}:do-toggle", target=do_toggle,
+                   args=(wrapper.get_row().get_active(),)).start()
 
         self.toggles_page.add_toggle(compiled, on_toggle)
 
@@ -167,7 +168,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
                 GLib.idle_add(unblock_ui)
 
-            Thread(target=do_run, daemon=True).start()
+            Thread(name=f"sbcc_gui:{__capture.name}:do-run", target=do_run).start()
 
         self.utilities_page.add_utility(compiled, on_run)
 

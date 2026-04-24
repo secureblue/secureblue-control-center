@@ -104,7 +104,7 @@ class GUIProgressBar(ProgressBar):
 
         self.pulse = mode
         if mode:
-            Thread(target=self.tick_pulse).start()
+            Thread(name="sbcc_gui:progressbar", target=self.tick_pulse, daemon=True).start()
         else:
             self.set_progress(self.progress)
 
