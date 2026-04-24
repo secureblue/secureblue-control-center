@@ -54,6 +54,7 @@ class GUIProgressBar(ProgressBar):
     def close(self) -> None:
         if not self.active:
             raise RuntimeError("ProgressBar is not active")
+        self.active = False
 
         def apply_close(_event: Event) -> None:
             self.dialog.close()
@@ -63,8 +64,6 @@ class GUIProgressBar(ProgressBar):
         event = Event()
         GLib.idle_add(apply_close, event)
         event.wait()
-
-        self.active = False
 
     def is_active(self) -> bool:
         return self.active
@@ -112,6 +111,6 @@ class GUIProgressBar(ProgressBar):
         def apply_pulse() -> None:
             self.dialog.get_progress_bar().pulse()
 
-        while self.pulse:
+        while self.active and self.pulse:
             GLib.idle_add(apply_pulse)
             sleep(0.2)

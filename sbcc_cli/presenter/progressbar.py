@@ -39,6 +39,8 @@ class CLIProgressBar(ProgressBar):
     def close(self) -> None:
         if not self.active:
             raise RuntimeError("ProgressBar is not active.")
+        self.active = False
+
         sys.stdout.write(ANSI_CURSOR_UP)
         sys.stdout.write(ANSI_CLEAR_LINE)
         if self.printed_header:
@@ -46,7 +48,6 @@ class CLIProgressBar(ProgressBar):
             sys.stdout.write(ANSI_CLEAR_LINE)
         sys.stdout.write(ANSI_CURSOR_UP)
         self._presenter.unblock()
-        self.active = False
 
     def is_active(self) -> bool:
         return self.active
