@@ -47,7 +47,7 @@ class CLIChooser(Chooser):
                 return keys[int(selection) - 1]
             elif default is not None and selection == "":
                 sys.stdout.write(ANSI_RESTORE_CURSOR)
-                print(default_index)
+                print(default_index, end="\n\n")
                 self._presenter.unblock()
                 return default
             print(_("Invalid selection. Please try again."))
