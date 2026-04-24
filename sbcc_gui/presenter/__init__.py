@@ -6,12 +6,12 @@ import dataclasses
 
 from threading import Event
 from typing import Any, Callable
-from sbcc_framework import PresenterInterface
-from sbcc_gui.presenter.chooser import GUIChooser
-from sbcc_gui.presenter.progressbar import GUIProgressBar
 from gi.repository import Adw, GLib
+from sbcc_framework import PresenterInterface
 from sbcc_framework.feature import CompiledFeature, BooleanResponse
 from sbcc_framework.presenter import Chooser, Presenter, ProgressBar
+from sbcc_gui.presenter.chooser import GUIChooser
+from sbcc_gui.presenter.progressbar import GUIProgressBar
 from sbcc_gui.widget.dialog import BooleanDialog, InputDialog, TextDialog, PasswordDialog
 from sbcc_gui.window import Toastable
 

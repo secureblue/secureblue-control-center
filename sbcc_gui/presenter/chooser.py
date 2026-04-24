@@ -4,12 +4,12 @@
 
 from threading import Event
 from typing import Any
+from gi.repository import GLib
 from sbcc_framework import PresenterInterface
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import Chooser
 from sbcc_gui.widget.dialog import ChooserDialog
 from sbcc_gui.window import Toastable
-from gi.repository import GLib
 
 
 class GUIChooser(Chooser):

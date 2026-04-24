@@ -4,13 +4,13 @@
 
 from threading import Event, Thread
 from typing import Final
+from gi.repository import Adw, GLib, Gio, Gtk
+from sbcc_framework.feature import CompiledFeature
+from sbcc_framework.feature.toggle import Toggle
 from sbcc_framework.feature.utility import Utility
 from sbcc_gui.page.utilities import UtilitiesPage
 from sbcc_gui.widget.dialog import FatalErrorDialog
 from sbcc_gui.widget.row import SidebarRow, ToggleRow
-from gi.repository import Adw, GLib, Gio, Gtk
-from sbcc_framework.feature import CompiledFeature
-from sbcc_framework.feature.toggle import Toggle
 from sbcc_gui.page.home import HomePage
 from sbcc_gui.page.toggles import TogglesPage
 from sbcc_gui.presenter import GUIPresenter

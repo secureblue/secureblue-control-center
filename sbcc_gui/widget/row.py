@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import Callable, Final, Self
-from util import gettext_marker
 from gi.repository import Gtk, Adw
+from util import gettext_marker
 
 _: Final = gettext_marker()
 

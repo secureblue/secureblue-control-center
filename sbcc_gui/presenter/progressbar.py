@@ -4,12 +4,12 @@
 
 from threading import Event, Thread
 from time import sleep
+from gi.repository import GLib
 from sbcc_framework import PresenterInterface
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import ProgressBar
 from sbcc_gui.widget.dialog import ProgressDialog
 from sbcc_gui.window import Toastable
-from gi.repository import GLib
 
 
 class GUIProgressBar(ProgressBar):

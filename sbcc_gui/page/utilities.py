@@ -4,12 +4,12 @@
 
 from threading import Thread
 from typing import Any, Callable, Final
+from gi.repository import GLib
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.utility import Utility
 from sbcc_gui.page import FeaturesPage
 from sbcc_gui.widget.row import UtilityRow
 from util import gettext_marker
-from gi.repository import GLib
 
 _: Final = gettext_marker()
 

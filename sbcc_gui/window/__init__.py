@@ -3,8 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from typing import cast
-from sbcc_framework.feature import CompiledFeature
 from gi.repository import Adw
+from sbcc_framework.feature import CompiledFeature
 
 
 class Toastable:
