@@ -57,20 +57,23 @@ class Chooser(ABC):
         """
         return self._options.pop(key) if self._options.__contains__(key) else None
 
-    def choose(self) -> str:
+    def choose(self, default: str | None = None) -> str:
         """
         Prompts the user with this chooser. Blocks until the user submits their choice.\n
         No other presenter actions may be performed while this chooser is active.
         Must not be called while the underlying presenter is already blocked.\n
         The chooser may not be reused after this method has been called.
+        :param default: The key of the default option to pre-select.
         :returns: The option key the user chose.
         """
+        if default is not None and default not in self._options:
+            raise ValueError(f"Invalid default option, chooser has none with key {default}")
         if self._presenter.is_blocked():
             raise RuntimeError("Illegal action on blocked presenter")
         if not self._options:
             raise RuntimeError("Chooser has no options")
-        return self._choose()
+        return self._choose(default)
 
     @abstractmethod
-    def _choose(self) -> str:
+    def _choose(self, default: str | None) -> str:
         pass

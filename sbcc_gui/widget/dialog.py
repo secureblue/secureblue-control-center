@@ -141,6 +141,7 @@ class ProgressDialog(BaseDialog):
 class ChooserDialog(BaseDialog):
     callback: Callable[[str], Any] | None = None
     list_box: Gtk.ListBox
+    options: dict[str, Adw.ButtonRow]
 
     def __init__(self, callback: Callable[[str], Any], *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -152,6 +153,8 @@ class ChooserDialog(BaseDialog):
 
         self.add_response("submit", _("Confirm"))
         self.set_response_appearance("submit", Adw.ResponseAppearance.SUGGESTED)
+
+        self.options = dict()
 
     def add_option(self, key: str, value: str) -> None:
         row = Adw.ButtonRow(
@@ -166,8 +169,18 @@ class ChooserDialog(BaseDialog):
                 )
             )
         self.list_box.append(row)
-        if self.list_box.get_selected_row() is None:
-            self.list_box.select_row(row)
+        self.options[key] = row
+
+    def remove_option(self, key: str) -> None:
+        if key not in self.options:
+            raise ValueError("No such key")
+        self.list_box.remove(self.options[key])
+        self.options.pop(key)
+
+    def select_option(self, key: str) -> None:
+        if key not in self.options:
+            raise ValueError("No such key")
+        self.list_box.select_row(self.options[key])
 
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if self.callback and response_id == "submit":

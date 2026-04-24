@@ -29,7 +29,7 @@ class GUIChooser(Chooser):
     def set_context(self, context: str) -> None:
         self.context = context
 
-    def _choose(self) -> str:
+    def _choose(self, default: str | None) -> str:
         self._presenter.block()
 
         def show_dialog(_event: Event, _result: list[Any]):
@@ -46,6 +46,9 @@ class GUIChooser(Chooser):
 
             for key, value in self._options.items():
                 dialog.add_option(key, value)
+
+            # select default option if provided, otherwise select first option
+            dialog.select_option(default if default is not None else next(iter(self._options.keys())))
 
             dialog.choose(self.main_window.get_window())
 
