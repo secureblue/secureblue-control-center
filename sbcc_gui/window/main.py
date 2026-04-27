@@ -103,18 +103,17 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
             def do_toggle(_state: bool) -> None:
                 def apply_result(_result: bool) -> None:
+                    if wrapper.get_row().get_active() != _result:
+                        wrapper.block_handler()
+                        wrapper.get_row().set_active(_result)
+                        wrapper.unblock_handler()
                     self.sidebar.set_sensitive(True)
                     self.stack.set_sensitive(True)
-                    wrapper.block_handler()
-                    wrapper.get_row().set_active(_result)
-                    wrapper.unblock_handler()
 
                 def cancel_func() -> None:
                     def get_state(_event: Event, _result: list[bool]) -> None:
                         try:
                             _result[0] = __capture.feature.get_state()
-                        except UserCancelFeatureException:
-                            raise
                         except Exception as _e:
                             self.show_error_and_exit(__capture, _e)
                             return
