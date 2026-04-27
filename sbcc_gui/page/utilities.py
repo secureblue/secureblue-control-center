@@ -37,7 +37,7 @@ class UtilitiesPage(FeaturesPage):
         self.categories[category_name].add(wrapper.get_row())
 
     def set_initial_state(self, compiled: CompiledFeature[Utility], wrapper: UtilityRow) -> None:
-        def utility_disable(reason: str, *, __capture: UtilityRow = wrapper) -> None:
+        def disable_utility(reason: str, *, __capture: UtilityRow = wrapper) -> None:
             row = wrapper.get_row()
             row.set_tooltip_text(reason)
             row.set_activatable(False)
@@ -46,6 +46,6 @@ class UtilitiesPage(FeaturesPage):
         try:
             unavailable_context = compiled.feature.is_available()
             if unavailable_context is not None:
-                GLib.idle_add(utility_disable, unavailable_context)
+                GLib.idle_add(disable_utility, unavailable_context)
         except Exception as e:
             self.main_window.show_error_and_exit(compiled, e)
