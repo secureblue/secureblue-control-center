@@ -96,8 +96,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         self.toast_overlay.add_toast(toast)
 
     def add_preference(self, compiled: CompiledFeature[Preference]) -> None:
-        # noinspection PyUnusedLocal
-        def on_toggle(wrapper: PreferenceRow, *args, __capture: CompiledFeature[Preference] = compiled) -> None:
+        def on_toggle(wrapper: PreferenceRow) -> None:
             self.sidebar.set_sensitive(False)
             self.stack.set_sensitive(False)
 
@@ -113,39 +112,38 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                 def cancel_func() -> None:
                     def get_state(_event: Event, _result: list[bool]) -> None:
                         try:
-                            _result[0] = __capture.feature.get_state()
+                            _result[0] = compiled.feature.get_state()
                         except Exception as _e:
-                            self.show_error_and_exit(__capture, _e)
+                            self.show_error_and_exit(compiled, _e)
                             return
 
                         _event.set()
 
                     _result: list[bool] = [False]
                     event = Event()
-                    Thread(name=f"sbcc_gui:{__capture.name}:get-state", target=get_state, args=(event, _result)).start()
+                    Thread(name=f"sbcc_gui:{compiled.name}:get-state", target=get_state, args=(event, _result)).start()
                     event.wait()
                     GLib.idle_add(apply_result, _result[0])
 
                     raise UserCancelFeatureException(f"User cancelled preference {compiled.name}, reset to {_result[0]}")
 
                 try:
-                    result = __capture.feature.set_state(GUIPresenter(self, __capture, cancel_func), _state)
+                    result = compiled.feature.set_state(GUIPresenter(self, compiled, cancel_func), _state)
                 except UserCancelFeatureException:
                     raise
                 except Exception as e:
-                    self.show_error_and_exit(__capture, e)
+                    self.show_error_and_exit(compiled, e)
                     return
 
                 GLib.idle_add(apply_result, result)
 
-            Thread(name=f"sbcc_gui:{__capture.name}:do-toggle", target=do_toggle,
+            Thread(name=f"sbcc_gui:{compiled.name}:do-toggle", target=do_toggle,
                    args=(wrapper.get_row().get_active(),)).start()
 
         self.preferences_page.add_preference(compiled, on_toggle)
 
     def add_utility(self, compiled: CompiledFeature[Utility]) -> None:
-        # noinspection PyUnusedLocal
-        def on_run(*args, __capture: CompiledFeature[Utility] = compiled) -> None:
+        def on_run(_) -> None:
             self.sidebar.set_sensitive(False)
             self.stack.set_sensitive(False)
 
@@ -159,16 +157,16 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                     raise UserCancelFeatureException(f"User cancelled utility {compiled.name}")
 
                 try:
-                    __capture.feature.run(GUIPresenter(self, __capture, cancel_func))
+                    compiled.feature.run(GUIPresenter(self, compiled, cancel_func))
                 except UserCancelFeatureException:
                     raise
                 except Exception as e:
-                    self.show_error_and_exit(__capture, e)
+                    self.show_error_and_exit(compiled, e)
                     return
 
                 GLib.idle_add(unblock_ui)
 
-            Thread(name=f"sbcc_gui:{__capture.name}:do-run", target=do_run).start()
+            Thread(name=f"sbcc_gui:{compiled.name}:do-run", target=do_run).start()
 
         self.utilities_page.add_utility(compiled, on_run)
 
