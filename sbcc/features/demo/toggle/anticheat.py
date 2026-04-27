@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from sbcc.features.demo import CATEGORY_HARDENING_TOGGLES
+from sbcc.features.demo import CATEGORY_HARDENING_PREFS
 from sbcc_framework.feature import feature, Environment
-from sbcc_framework.feature.toggle import Toggle
+from sbcc_framework.feature.preference import Preference
 from sbcc_framework.presenter import Presenter
 
 
@@ -12,10 +12,10 @@ from sbcc_framework.presenter import Presenter
     name="anticheat-support",
     display_name="Anticheat support",
     description="Enables ptrace, which is required by some anti-cheats",
-    category=CATEGORY_HARDENING_TOGGLES,
+    category=CATEGORY_HARDENING_PREFS,
     environment=Environment.DESKTOP
 )
-class AnticheatSupport(Toggle):
+class AnticheatSupport(Preference):
     def get_state(self) -> bool:
         return False
 

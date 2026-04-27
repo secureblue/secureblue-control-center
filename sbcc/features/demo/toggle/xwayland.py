@@ -2,9 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from sbcc.features.demo import CATEGORY_HARDENING_TOGGLES
+from sbcc.features.demo import CATEGORY_HARDENING_PREFS
 from sbcc_framework.feature import feature, Environment
-from sbcc_framework.feature.toggle import Toggle
+from sbcc_framework.feature.preference import Preference
 from sbcc_framework.presenter import Presenter
 
 
@@ -12,10 +12,10 @@ from sbcc_framework.presenter import Presenter
     name="xwayland-support",
     display_name="Xwayland support",
     description="Enables support for legacy X11 applications",
-    category=CATEGORY_HARDENING_TOGGLES,
+    category=CATEGORY_HARDENING_PREFS,
     environment=Environment.DESKTOP
 )
-class XWayland(Toggle):
+class XWayland(Preference):
     def get_state(self) -> bool:
         return False
 

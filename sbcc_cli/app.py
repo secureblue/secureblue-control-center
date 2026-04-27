@@ -12,7 +12,7 @@ from typing import Dict, Final
 from click import Context, Group, pass_context
 from sbcc_cli.presenter import CLIPresenter
 from sbcc_framework.feature import CompiledFeature
-from sbcc_framework.feature.toggle import ComplexToggle, Toggle
+from sbcc_framework.feature.preference import ComplexPreference, Preference
 from sbcc_framework.feature.utility import ComplexUtility, Utility
 from util import gettext_marker
 
@@ -33,44 +33,44 @@ class SBCCApplicationCLI:
     def __init__(self, main_command: Group):
         self.main_command = main_command
 
-        self.register_toggles()
+        self.register_preferences()
         self.register_utilities()
 
-    def register_toggles(self):
-        toggle_group = click.group(name="toggle", help=_("All available toggles"))(lambda: None)
+    def register_preferences(self):
+        pref_group = click.group(name="pref", help=_("All available preferences"))(lambda: None)
 
         categories: Dict[str, Group] = {}
 
-        for compiled in Toggle.REGISTRY:
+        for compiled in Preference.REGISTRY:
             if not compiled.supports_cli() or not compiled.supports_environment():
                 continue
 
-            add_category(toggle_group, categories, compiled)
+            add_category(pref_group, categories, compiled)
 
             feature_group = click.group(name=compiled.name, help=compiled.description)(lambda: None)
             categories[compiled.category.name].add_command(feature_group)
 
-            @click.command(name="get", help=_("Prints the current state of this toggle"))
+            @click.command(name="get", help=_("Prints the current state of this preference"))
             @pass_context
             def getter(ctx: Context, *, __capture=compiled):
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
-                    print(_("The toggle '{0}' is not available:").format(__capture.display_name))
+                    print(_("The preference '{0}' is not available:").format(__capture.display_name))
                     print(unavailable_context)
                     ctx.exit(1)
 
                 state = "enabled" if __capture.feature.get_state() else "disabled"
-                print(_("The feature '{0}' is currently {1}.").format(__capture.display_name, state))
+                print(_("The preference '{0}' is currently {1}.").format(__capture.display_name, state))
 
             feature_group.add_command(getter)
 
-            @click.command(name="set", help=_("Sets the state of this toggle"))
+            @click.command(name="set", help=_("Sets the state of this preference"))
             @click.argument("mode", type=click.Choice(["on", "off"]))
             @pass_context
             def setter(ctx: Context, mode: str, *, __capture=compiled):
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
-                    print(_("The toggle '{0}' is not available:").format(__capture.display_name))
+                    print(_("The preference '{0}' is not available:").format(__capture.display_name))
                     print(unavailable_context)
                     ctx.exit(1)
 
@@ -78,18 +78,18 @@ class SBCCApplicationCLI:
 
                 if __capture.feature.get_state() == mode_bool:
                     _mode = "enabled" if mode_bool else "disabled"
-                    print(_("The toggle '{0}' is already {1}.").format(__capture.display_name, _mode))
+                    print(_("The preference '{0}' is already {1}.").format(__capture.display_name, _mode))
                     ctx.exit(0)
 
                 __capture.feature.set_state(CLIPresenter(), mode_bool)
 
             feature_group.add_command(setter)
 
-        for complex_compiled in ComplexToggle.REGISTRY:
+        for complex_compiled in ComplexPreference.REGISTRY:
             if not complex_compiled.supports_cli() or not complex_compiled.supports_environment():
                 continue
 
-            add_category(toggle_group, categories, complex_compiled)
+            add_category(pref_group, categories, complex_compiled)
 
             feature_group = click.group(name=complex_compiled.name, help=complex_compiled.description)(lambda: None)
             categories[complex_compiled.category.name].add_command(feature_group)
@@ -100,7 +100,7 @@ class SBCCApplicationCLI:
             feature_setter = complex_compiled.feature.register_setter(CLIPresenter())
             feature_group.add_command(feature_setter, "set")
 
-        self.main_command.add_command(toggle_group)
+        self.main_command.add_command(pref_group)
 
     def register_utilities(self):
         utility_group = click.group(name="utility", help=_("All available utilities"))(lambda: None)

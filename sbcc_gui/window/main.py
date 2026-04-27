@@ -6,13 +6,13 @@ from threading import Event, Thread
 from typing import Final
 from gi.repository import Adw, GLib, Gio, Gtk
 from sbcc_framework.feature import CompiledFeature
-from sbcc_framework.feature.toggle import Toggle
+from sbcc_framework.feature.preference import Preference
 from sbcc_framework.feature.utility import Utility
 from sbcc_gui.page.utilities import UtilitiesPage
 from sbcc_gui.widget.dialog import FatalErrorDialog
-from sbcc_gui.widget.row import SidebarRow, ToggleRow
+from sbcc_gui.widget.row import SidebarRow, PreferenceRow
 from sbcc_gui.page.home import HomePage
-from sbcc_gui.page.toggles import TogglesPage
+from sbcc_gui.page.preferences import PreferencesPage
 from sbcc_gui.presenter import GUIPresenter
 from sbcc_gui.widget.sidebar import Sidebar
 from sbcc_gui.window import Toastable
@@ -27,7 +27,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
     sidebar: Sidebar
     stack: Adw.ViewStack
 
-    toggles_page: TogglesPage
+    preferences_page: PreferencesPage
     utilities_page: UtilitiesPage
 
     def __init__(self, *args, **kwargs):
@@ -76,12 +76,12 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             lambda: self.stack.set_visible_child_name("home")
         )
 
-        # Toggles Page
-        self.toggles_page = TogglesPage(main_window=self)
-        self.stack.add_named(self.toggles_page, "toggles")
+        # Preferences Page
+        self.preferences_page = PreferencesPage(main_window=self)
+        self.stack.add_named(self.preferences_page, "preferences")
         self.sidebar.add_entry(
-            SidebarRow(name="toggles", label=_("Toggles"), icon_name="preferences-system-symbolic"),
-            lambda: self.stack.set_visible_child_name("toggles")
+            SidebarRow(name="preferences", label=_("Preferences"), icon_name="preferences-system-symbolic"),
+            lambda: self.stack.set_visible_child_name("preferences")
         )
 
         # Utilities Page
@@ -95,9 +95,9 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
     def show_toast(self, toast: Adw.Toast) -> None:
         self.toast_overlay.add_toast(toast)
 
-    def add_toggle(self, compiled: CompiledFeature[Toggle]) -> None:
+    def add_preference(self, compiled: CompiledFeature[Preference]) -> None:
         # noinspection PyUnusedLocal
-        def on_toggle(wrapper: ToggleRow, *args, __capture: CompiledFeature[Toggle] = compiled) -> None:
+        def on_toggle(wrapper: PreferenceRow, *args, __capture: CompiledFeature[Preference] = compiled) -> None:
             self.sidebar.set_sensitive(False)
             self.stack.set_sensitive(False)
 
@@ -127,7 +127,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                     event.wait()
                     GLib.idle_add(apply_result, _result[0])
 
-                    raise UserCancelFeatureException(f"User cancelled toggle {compiled.name}, reset to {_result[0]}")
+                    raise UserCancelFeatureException(f"User cancelled preference {compiled.name}, reset to {_result[0]}")
 
                 try:
                     result = __capture.feature.set_state(GUIPresenter(self, __capture, cancel_func), _state)
@@ -142,7 +142,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             Thread(name=f"sbcc_gui:{__capture.name}:do-toggle", target=do_toggle,
                    args=(wrapper.get_row().get_active(),)).start()
 
-        self.toggles_page.add_toggle(compiled, on_toggle)
+        self.preferences_page.add_preference(compiled, on_toggle)
 
     def add_utility(self, compiled: CompiledFeature[Utility]) -> None:
         # noinspection PyUnusedLocal

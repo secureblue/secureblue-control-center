@@ -10,9 +10,9 @@ from sbcc_framework.feature import CompiledFeature, Feature
 from sbcc_framework.presenter import Presenter
 
 
-class Toggle(Feature):
+class Preference(Feature):
     """
-    A feature toggle with two states, enabled and disabled.
+    A feature preference with two states, enabled and disabled.
     """
 
     REGISTRY: List[CompiledFeature[Self]] = []
@@ -20,25 +20,25 @@ class Toggle(Feature):
     @abstractmethod
     def get_state(self) -> bool:
         """
-        Invoked when the toggle state is requested.
-        :returns: The current toggle state.
+        Invoked when the current state is requested.
+        :returns: The current state.
         """
         pass
 
     @abstractmethod
     def set_state(self, presenter: Presenter, state: bool) -> bool:
         """
-        Invoked when the user attempts to change the toggle state. Implement enable/disable logic here.
+        Invoked when the user attempts to change the state. Implement enable/disable logic here.
         :param presenter: The presenter to interact with the user.
-        :param state: The requested new toggle state.
-        :returns: The resulting new toggle state.
+        :param state: The requested new state.
+        :returns: The resulting state.
         """
         pass
 
 
-class ComplexToggle(Feature):
+class ComplexPreference(Feature):
     """
-    A complex feature toggle with an arbitrary amount of states that can register custom commands and arguments.\n
+    A complex feature preference that can register custom subcommands and arguments.\n
     Only supported in CLI mode.
     """
 
@@ -47,19 +47,19 @@ class ComplexToggle(Feature):
     @abstractmethod
     def register_getter(self, presenter: Presenter) -> click.Command:
         """
-        Invoked when this toggle is registered. Allows registering custom commands and arguments
-        for the getter of this toggle.
+        Invoked when this preference is registered. Allows registering custom subcommands and arguments
+        for the getter of this preference.
         :param presenter: The presenter to interact with the user.
-        :returns: The click command to register for this toggle's getter.
+        :returns: The click command to register for this preference's getter.
         """
         pass
 
     @abstractmethod
     def register_setter(self, presenter: Presenter) -> click.Command:
         """
-        Invoked when this toggle is registered. Allows registering custom commands and arguments
-        for the setter of this toggle.
+        Invoked when this preference is registered. Allows registering custom subcommands and arguments
+        for the setter of this preference.
         :param presenter: The presenter to interact with the user.
-        :returns: The click command to register for this toggle's setter.
+        :returns: The click command to register for this preference's setter.
         """
         pass

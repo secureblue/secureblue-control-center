@@ -47,7 +47,7 @@ class BlockableRow[T]:
         self.callback(self)
 
 
-class ToggleRow(BlockableRow[Adw.SwitchRow]):
+class PreferenceRow(BlockableRow[Adw.SwitchRow]):
     def __init__(self, *args, callback: Callable[[Self], None], **kwargs):
         super().__init__(row=Adw.SwitchRow(*args, **kwargs), signal_name="notify::active", callback=callback)
 

@@ -6,25 +6,25 @@ from threading import Thread
 from typing import Any, Callable, Final
 from gi.repository import GLib
 from sbcc_framework.feature import CompiledFeature
-from sbcc_framework.feature.toggle import Toggle
+from sbcc_framework.feature.preference import Preference
 from sbcc_gui.page import FeaturesPage
-from sbcc_gui.widget.row import ToggleRow
+from sbcc_gui.widget.row import PreferenceRow
 from util import gettext_marker
 
 _: Final = gettext_marker()
 
 
-class TogglesPage(FeaturesPage):
+class PreferencesPage(FeaturesPage):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.set_title(_("Toggles"))
+        self.set_title(_("Preferences"))
 
-    def add_toggle(self, compiled: CompiledFeature[Toggle], callback: Callable[[ToggleRow], Any]) -> None:
+    def add_preference(self, compiled: CompiledFeature[Preference], callback: Callable[[PreferenceRow], Any]) -> None:
         category_name = compiled.category.name
         if category_name not in self.categories:
             self.insert_category(compiled.category)
 
-        wrapper = ToggleRow(
+        wrapper = PreferenceRow(
             name=compiled.name,
             title=compiled.display_name,
             subtitle=compiled.description,
@@ -36,13 +36,13 @@ class TogglesPage(FeaturesPage):
 
         self.categories[category_name].add(wrapper.get_row())
 
-    def set_initial_state(self, compiled: CompiledFeature[Toggle], wrapper: ToggleRow) -> None:
-        def toggle_on(__capture: ToggleRow = wrapper) -> None:
+    def set_initial_state(self, compiled: CompiledFeature[Preference], wrapper: PreferenceRow) -> None:
+        def toggle_on(__capture: PreferenceRow = wrapper) -> None:
             wrapper.block_handler()
             wrapper.get_row().set_active(True)
             wrapper.unblock_handler()
 
-        def toggle_disable(reason: str, *, __capture: ToggleRow = wrapper) -> None:
+        def disable_preference(reason: str, *, __capture: PreferenceRow = wrapper) -> None:
             row = wrapper.get_row()
             row.set_tooltip_text(reason)
             row.set_activatable(False)
@@ -51,7 +51,7 @@ class TogglesPage(FeaturesPage):
         try:
             unavailable_context = compiled.feature.is_available()
             if unavailable_context is not None:
-                GLib.idle_add(toggle_disable, unavailable_context)
+                GLib.idle_add(disable_preference, unavailable_context)
                 return
 
             if compiled.feature.get_state():

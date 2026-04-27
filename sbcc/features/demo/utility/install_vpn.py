@@ -4,7 +4,7 @@
 
 from time import sleep
 
-from sbcc.features.demo import CATEGORY_SOFTWARE
+from sbcc.features.demo import CATEGORY_SOFTWARE_UTILS
 from sbcc_framework.feature import feature
 from sbcc_framework.feature.utility import Utility
 from sbcc_framework.presenter import Presenter
@@ -14,7 +14,7 @@ from sbcc_framework.presenter import Presenter
     name="install-vpn",
     display_name="Install VPN",
     description="Convenience utility for layering VPN provider packages",
-    category=CATEGORY_SOFTWARE
+    category=CATEGORY_SOFTWARE_UTILS
 )
 class InstallVPN(Utility):
     providers: dict[str, str] = {"mullvad": "Mullvad VPN", "ivpn": "IVPN", "protonvpn": "Proton VPN"}
