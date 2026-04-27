@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "secureblue Control Center"
 requires-python = ">=3.13"
 dependencies = [
-    "click>=8.3.1",
+    "click==8.1.7",
     "pygobject>=3.56.2",
     "pygobject-stubs>=2.17.0",
 ]
