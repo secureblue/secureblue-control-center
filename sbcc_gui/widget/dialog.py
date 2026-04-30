@@ -27,7 +27,7 @@ class BaseDialog(Adw.AlertDialog):
         pass
 
     def _on_response_internal(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        if not self.had_response and response_id == "close" and self.cancel_func:
+        if not self.had_response and response_id == "close" and self.cancel_func is not None:
             self.cancel_func()
             return
         self.had_response = True
