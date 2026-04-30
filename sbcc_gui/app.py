@@ -15,7 +15,7 @@ gi.require_version("Adw", "1")
 from gi.repository import Adw, GLib
 from typing import Final
 from sbcc_framework.feature.utility import Utility
-from sbcc_framework.feature.preference import Preference
+from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_gui.window.main import MainWindow
 from util import gettext_marker
 
@@ -46,6 +46,11 @@ class SBCCApplicationGUI(Adw.Application):
             if not compiled.supports_gui() or not compiled.supports_environment():
                 continue
             self.main_window.add_preference(compiled)
+
+        for multi_compiled in MultiPreference.REGISTRY:
+            if not multi_compiled.supports_gui() or not multi_compiled.supports_environment():
+                continue
+            self.main_window.add_multi_preference(multi_compiled)
 
     def register_utilities(self) -> None:
         for compiled in Utility.REGISTRY:

@@ -6,11 +6,11 @@ from threading import Event, Thread
 from typing import Final
 from gi.repository import Adw, GLib, Gio, Gtk
 from sbcc_framework.feature import CompiledFeature
-from sbcc_framework.feature.preference import Preference
+from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_framework.feature.utility import Utility
 from sbcc_gui.page.utilities import UtilitiesPage
 from sbcc_gui.widget.dialog import FatalErrorDialog
-from sbcc_gui.widget.row import SidebarRow, PreferenceRow
+from sbcc_gui.widget.row import SidebarRow, PreferenceRow, MultiPreferenceRow
 from sbcc_gui.page.home import HomePage
 from sbcc_gui.page.preferences import PreferencesPage
 from sbcc_gui.presenter import GUIPresenter
@@ -142,6 +142,54 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                    args=(wrapper.get_row().get_active(),)).start()
 
         self.preferences_page.add_preference(compiled, on_toggle)
+
+    def add_multi_preference(self, compiled: CompiledFeature[MultiPreference]):
+        def on_change(wrapper: MultiPreferenceRow) -> None:
+            self.sidebar.set_sensitive(False)
+            self.stack.set_sensitive(False)
+
+            def do_change(_state: str) -> None:
+                def apply_result(_result: str) -> None:
+                    if wrapper.get_selected_option() != _result:
+                        wrapper.block_handler()
+                        wrapper.set_selected_option(_result)
+                        wrapper.unblock_handler()
+                    self.sidebar.set_sensitive(True)
+                    self.stack.set_sensitive(True)
+
+                def cancel_func() -> None:
+                    def get_state(_event: Event, _result: list[str]) -> None:
+                        try:
+                            _result[0] = compiled.feature.get_state()
+                        except Exception as _e:
+                            self.show_error_and_exit(compiled, _e)
+                            return
+
+                        _event.set()
+
+                    _result: list[str] = [""]
+                    event = Event()
+                    Thread(name=f"sbcc_gui:{compiled.name}:get-state", target=get_state, args=(event, _result)).start()
+                    event.wait()
+                    GLib.idle_add(apply_result, _result[0])
+
+                    raise UserCancelFeatureException(f"User cancelled preference {compiled.name},"
+                                                     f" reset to {_result[0]}")
+
+                try:
+                    result = compiled.feature.set_state(GUIPresenter(self, compiled, cancel_func), _state)
+                except UserCancelFeatureException:
+                    raise
+                except Exception as e:
+                    self.show_error_and_exit(compiled, e)
+                    return
+
+                GLib.idle_add(apply_result, result)
+
+            Thread(name=f"sbcc_gui:{compiled.name}:do-change", target=do_change,
+                   args=(wrapper.get_selected_option(),)).start()
+
+        self.preferences_page.add_multi_preference(compiled, on_change)
 
     def add_utility(self, compiled: CompiledFeature[Utility]) -> None:
         def on_run(_) -> None:

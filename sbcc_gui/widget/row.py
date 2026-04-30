@@ -2,8 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Callable, Final, Self
-from gi.repository import Gtk, Adw
+from typing import Callable, Final, Self, cast
+from gi.repository import Gtk, Adw, GObject, Gio
 from util import gettext_marker
 
 _: Final = gettext_marker()
@@ -50,6 +50,45 @@ class BlockableRow[T]:
 class PreferenceRow(BlockableRow[Adw.SwitchRow]):
     def __init__(self, *args, callback: Callable[[Self], None], **kwargs):
         super().__init__(row=Adw.SwitchRow(*args, **kwargs), signal_name="notify::active", callback=callback)
+
+
+class MultiPreferenceRow(BlockableRow[Adw.ComboRow]):
+    store: Gio.ListStore
+
+    def __init__(self, *args, callback: Callable[[Self], None], **kwargs):
+        super().__init__(row=Adw.ComboRow(*args, **kwargs), signal_name="notify::selected", callback=callback)
+
+        # Block handler to avoid firing event during widget build
+        self.block_handler()
+        self.store = Gio.ListStore.new(MultiPreferenceRow.LabeledKey)
+        self.get_row().set_model(self.store)
+        self.get_row().set_expression(Gtk.PropertyExpression.new(MultiPreferenceRow.LabeledKey, None, "label"))
+
+    def ready(self) -> None:
+        self.unblock_handler()
+
+    def add_option(self, key: str, value: str) -> None:
+        self.store.append(MultiPreferenceRow.LabeledKey(key=key, label=value))
+
+    def get_selected_option(self) -> str:
+        return cast(MultiPreferenceRow.LabeledKey, self.get_row().get_selected_item()).key
+
+    def set_selected_option(self, key: str) -> None:
+        for i in range(self.store.get_n_items()):
+            if cast(MultiPreferenceRow.LabeledKey, self.store.get_item(i)).key == key:
+                self.get_row().set_selected(i)
+                return
+        raise ValueError(f"Row has no option with key {key}")
+
+    class LabeledKey(GObject.Object):
+        key = GObject.Property(type=str)
+        label = GObject.Property(type=str)
+
+        def __init__(self, key: str, label: str):
+            super().__init__()
+
+            self.key = key
+            self.label = label
 
 
 class UtilityRow(BlockableRow[Adw.ActionRow]):

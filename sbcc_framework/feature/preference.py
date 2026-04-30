@@ -36,6 +36,41 @@ class Preference(Feature):
         pass
 
 
+class MultiPreference(Feature):
+    """
+    A feature preference with an arbitrary amount of states.
+    """
+
+    REGISTRY: List[CompiledFeature[Self]] = []
+
+    @abstractmethod
+    def get_options(self) -> dict[str, str]:
+        """
+        Invoked to register all valid states of this feature. The keys represent the valid states, the values are
+        display names to those states.
+        :returns: A dictionary mapping each valid state to its display name.
+        """
+        pass
+
+    @abstractmethod
+    def get_state(self) -> str:
+        """
+        Invoked when the current state is requested.
+        :returns: The current state.
+        """
+        pass
+
+    @abstractmethod
+    def set_state(self, presenter: Presenter, state: str) -> str:
+        """
+        Invoked when the user attempts to change the state. Implement enable/disable logic here.
+        :param presenter: The presenter to interact with the user.
+        :param state: The requested new state.
+        :returns: The resulting state.
+        """
+        pass
+
+
 class ComplexPreference(Feature):
     """
     A complex feature preference that can register custom subcommands and arguments.\n

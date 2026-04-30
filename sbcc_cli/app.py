@@ -6,13 +6,15 @@
 The CLI application
 """
 
+import dataclasses
 import click
 
-from typing import Dict, Final
-from click import Context, Group, pass_context
+from typing import Dict, Final, Any
+from click import Context, Group, pass_context, ParamType, Parameter
+from click.shell_completion import CompletionItem
 from sbcc_cli.presenter import CLIPresenter
 from sbcc_framework.feature import CompiledFeature
-from sbcc_framework.feature.preference import ComplexPreference, Preference
+from sbcc_framework.feature.preference import ComplexPreference, Preference, MultiPreference
 from sbcc_framework.feature.utility import ComplexUtility, Utility
 from util import gettext_marker
 
@@ -25,6 +27,27 @@ def add_category(command: click.Group, categories: Dict[str, Group], compiled: C
         group = click.group(name=category_name, help=compiled.category.description)(lambda: None)
         categories[category_name] = group
         command.add_command(group)
+
+
+@dataclasses.dataclass
+class MultiPrefParamType(ParamType):
+    name = "mode"
+    modes: dict[str, str]
+
+    def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
+        if value in self.modes:
+            return value
+        else:
+            self.fail(f"'{value}' is not one of " + ", ".join(f"'{k}'" for k in self.modes.keys()) + ".", param, ctx)
+
+    def get_metavar(self, param: Parameter, ctx: Context) -> str | None:
+        return "{" + "|".join(self.modes.keys()) + "}"
+
+    def get_missing_message(self, param: Parameter, ctx: Context | None) -> str | None:
+        return "Choose from:\n" + ",\n".join(f"\t{k} ({v})" for k, v in self.modes.items())
+
+    def shell_complete(self, ctx: Context, param: Parameter, incomplete: str) -> list[CompletionItem]:
+        return [CompletionItem(value=opt) for opt in self.modes.keys() if opt.startswith(incomplete)]
 
 
 class SBCCApplicationCLI:
@@ -82,6 +105,47 @@ class SBCCApplicationCLI:
                     ctx.exit(0)
 
                 __capture.feature.set_state(CLIPresenter(), mode_bool)
+
+            feature_group.add_command(setter)
+
+        for multi_compiled in MultiPreference.REGISTRY:
+            if not multi_compiled.supports_cli() or not multi_compiled.supports_environment():
+                continue
+
+            add_category(pref_group, categories, multi_compiled)
+
+            feature_group = click.group(name=multi_compiled.name, help=multi_compiled.description)(lambda: None)
+            categories[multi_compiled.category.name].add_command(feature_group)
+
+            @click.command(name="get", help=_("Prints the current state of this preference"))
+            @pass_context
+            def getter(ctx: Context, *, __capture=multi_compiled):
+                unavailable_context = __capture.feature.is_available()
+                if unavailable_context is not None:
+                    print(_("The preference '{0}' is not available:").format(__capture.display_name))
+                    print(unavailable_context)
+                    ctx.exit(1)
+
+                state = __capture.feature.get_state()
+                print(_("The preference '{0}' is currently set to '{1}'.").format(__capture.display_name, state))
+
+            feature_group.add_command(getter)
+
+            @click.command(name="set", help=_("Sets the state of this preference"))
+            @click.argument("mode", type=MultiPrefParamType(multi_compiled.feature.get_options()))
+            @pass_context
+            def setter(ctx: Context, mode: str, *, __capture=multi_compiled):
+                unavailable_context = __capture.feature.is_available()
+                if unavailable_context is not None:
+                    print(_("The preference '{0}' is not available:").format(__capture.display_name))
+                    print(unavailable_context)
+                    ctx.exit(1)
+
+                if __capture.feature.get_state() == mode:
+                    print(_("The preference '{0}' is already set to '{1}'.").format(__capture.display_name, mode))
+                    ctx.exit(0)
+
+                __capture.feature.set_state(CLIPresenter(), mode)
 
             feature_group.add_command(setter)
 
