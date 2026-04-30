@@ -10,12 +10,15 @@ from typing import Callable, Final
 
 SBCC_VERSION: Final = "1.0.0"
 
+
+ANSI_BLUE: Final = "\033[94m"
 ANSI_RED: Final = "\033[91m"
 ANSI_RESET: Final = "\033[0m"
+
 ANSI_CURSOR_UP: Final = "\033[F"
 ANSI_CLEAR_LINE: Final = "\033[K"
+
 ANSI_REMEMBER_CURSOR: Final = "\0337"
-ANSI_BLUE: Final = "\033[94m"
 ANSI_RESTORE_CURSOR: Final = "\0338"
 
 
