@@ -143,7 +143,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         self.preferences_page.add_preference(compiled, on_toggle)
 
-    def add_multi_preference(self, compiled: CompiledFeature[MultiPreference]):
+    def add_multi_preference(self, compiled: CompiledFeature[MultiPreference]) -> None:
         def on_change(wrapper: MultiPreferenceRow) -> None:
             self.sidebar.set_sensitive(False)
             self.stack.set_sensitive(False)
