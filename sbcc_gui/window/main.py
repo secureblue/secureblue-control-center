@@ -125,7 +125,8 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                     event.wait()
                     GLib.idle_add(apply_result, _result[0])
 
-                    raise UserCancelFeatureException(f"User cancelled preference {compiled.name}, reset to {_result[0]}")
+                    raise UserCancelFeatureException(f"User cancelled preference {compiled.name},"
+                                                     f" reset to {_result[0]}")
 
                 try:
                     result = compiled.feature.set_state(GUIPresenter(self, compiled, cancel_func), _state)
