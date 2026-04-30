@@ -73,7 +73,6 @@ DEFAULT_CATEGORY: Final = Category(
 """The global default category."""
 
 
-@dataclasses.dataclass
 class Feature(ABC):
     """
     Abstract base class for all features.
