@@ -88,23 +88,23 @@ class SBCCApplicationCLI:
             feature_group.add_command(getter)
 
             @click.command(name="set", help=_("Sets the state of this preference"))
-            @click.argument("mode", type=click.Choice(["on", "off"]))
+            @click.argument("state", type=click.Choice(["on", "off"]))
             @pass_context
-            def setter(ctx: Context, mode: str, *, __capture=compiled):
+            def setter(ctx: Context, state: str, *, __capture=compiled):
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
                     print(unavailable_context)
                     ctx.exit(1)
 
-                mode_bool: bool = True if mode == "on" else False
+                state_bool: bool = True if state == "on" else False
 
-                if __capture.feature.get_state() == mode_bool:
-                    _mode = "enabled" if mode_bool else "disabled"
-                    print(_("The preference '{0}' is already {1}.").format(__capture.display_name, _mode))
+                if __capture.feature.get_state() == state_bool:
+                    _state = "enabled" if state_bool else "disabled"
+                    print(_("The preference '{0}' is already {1}.").format(__capture.display_name, _state))
                     ctx.exit(0)
 
-                __capture.feature.set_state(CLIPresenter(), mode_bool)
+                __capture.feature.set_state(CLIPresenter(), state_bool)
 
             feature_group.add_command(setter)
 
@@ -132,20 +132,20 @@ class SBCCApplicationCLI:
             feature_group.add_command(getter)
 
             @click.command(name="set", help=_("Sets the state of this preference"))
-            @click.argument("mode", type=MultiPrefParamType(multi_compiled.feature.get_options()))
+            @click.argument("state", type=MultiPrefParamType(multi_compiled.feature.get_options()))
             @pass_context
-            def setter(ctx: Context, mode: str, *, __capture=multi_compiled):
+            def setter(ctx: Context, state: str, *, __capture=multi_compiled):
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
                     print(unavailable_context)
                     ctx.exit(1)
 
-                if __capture.feature.get_state() == mode:
-                    print(_("The preference '{0}' is already set to '{1}'.").format(__capture.display_name, mode))
+                if __capture.feature.get_state() == state:
+                    print(_("The preference '{0}' is already set to '{1}'.").format(__capture.display_name, state))
                     ctx.exit(0)
 
-                __capture.feature.set_state(CLIPresenter(), mode)
+                __capture.feature.set_state(CLIPresenter(), state)
 
             feature_group.add_command(setter)
 
