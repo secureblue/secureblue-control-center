@@ -34,7 +34,7 @@ def launch(ctx: Context, gui: bool = False, version: bool = False) -> None:
         ctx.exit(1)
 
     if version:
-        print(_("secureblue Control Center version {0}").format(SBCC_VERSION))
+        print(_("secureblue Control Center v{0}").format(SBCC_VERSION))
         ctx.exit(0)
 
     if gui:
