@@ -170,7 +170,7 @@ def feature(
         )
 
         cls = compiled.feature.__class__.__mro__[1]
-        registry: List[CompiledFeature] = getattr(cls, "REGISTRY", None)
+        registry: List[CompiledFeature] | None = getattr(cls, "REGISTRY", None)
         if registry is None:
             raise AttributeError(f"Feature class '{cls.__name__}' has no registry")
         registry.append(compiled)
