@@ -31,7 +31,7 @@ def add_category(command: click.Group, categories: Dict[str, Group], compiled: C
 
 @dataclasses.dataclass
 class MultiPrefParamType(ParamType):
-    name = "mode"
+    name = "multi-pref"
     modes: dict[str, str]
 
     def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
