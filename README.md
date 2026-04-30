@@ -3,8 +3,8 @@
 ### Features:
 - Provides a UI-agnostic and thread-safe API for feature scripts (simply called features) to provide functionality to users.<br>
   Write once, works in both CLI and GUI.
-- Supports toggles (enable/disable functions) and utilities (idempotent functions)
-  - Complex variants of those are available for the CLI frontend, allowing registration of custom subcommands, arguments and states, directly through the Click Command API.
+- Supports preferences (enable/disable functions), multi-preferences (non-binary functions, arbitrary states) and utilities (idempotent functions)
+  - Complex variants of `Preference` and `Utility` are available for the CLI frontend, allowing registration of custom subcommands and arguments, directly through the Click Command API.
 - Categories
 - Limiting features to specific frontends (CLI/GUI) or environments (server/desktop).
 - gettext integration for translation
