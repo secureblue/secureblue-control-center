@@ -37,7 +37,7 @@ class UtilitiesPage(FeaturesPage):
         self.categories[category_name].add(wrapper.get_row())
 
     def set_initial_state(self, compiled: CompiledFeature[Utility], wrapper: UtilityRow) -> None:
-        def disable_utility(reason: str, *, __capture: UtilityRow = wrapper) -> None:
+        def disable_utility(reason: str) -> None:
             row = wrapper.get_row()
             row.set_tooltip_text(reason)
             row.set_activatable(False)
