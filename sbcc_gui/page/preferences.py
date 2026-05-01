@@ -75,7 +75,7 @@ class PreferencesPage(FeaturesPage):
         def set_initial_state(_compiled: CompiledFeature[MultiPreference], _wrapper: MultiPreferenceRow) -> None:
             def initialize(_options: dict[str, str], _state: str) -> None:
                 for key, value in _options.items():
-                    wrapper.add_option(key, value)
+                    _wrapper.add_option(key, value)
                 _wrapper.set_selected_option(_state)
                 _wrapper.ready()
 
