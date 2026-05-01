@@ -30,7 +30,7 @@ def add_category(command: click.Group, categories: Dict[str, Group], compiled: C
 
 
 def state_bool_to_str(value: bool) -> str:
-    return "enabled" if value else "disabled"
+    return _("enabled") if value else _("disabled")
 
 
 @dataclasses.dataclass
