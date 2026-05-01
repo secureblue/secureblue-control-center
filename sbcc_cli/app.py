@@ -16,7 +16,7 @@ from sbcc_cli.presenter import CLIPresenter
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import ComplexPreference, Preference, MultiPreference
 from sbcc_framework.feature.utility import ComplexUtility, Utility
-from util import gettext_marker
+from util import gettext_marker, ANSI_BLUE, ANSI_RESET
 
 _: Final = gettext_marker()
 
@@ -27,6 +27,10 @@ def add_category(command: click.Group, categories: Dict[str, Group], compiled: C
         group = click.group(name=category_name, help=compiled.category.description)(lambda: None)
         categories[category_name] = group
         command.add_command(group)
+
+
+def state_bool_to_str(value: bool) -> str:
+    return "enabled" if value else "disabled"
 
 
 @dataclasses.dataclass
@@ -82,7 +86,7 @@ class SBCCApplicationCLI:
                     print(unavailable_context)
                     ctx.exit(1)
 
-                state = "enabled" if __capture.feature.get_state() else "disabled"
+                state = state_bool_to_str(__capture.feature.get_state())
                 print(_("The preference '{0}' is currently {1}.").format(__capture.display_name, state))
 
             feature_group.add_command(getter)
@@ -97,14 +101,24 @@ class SBCCApplicationCLI:
                     print(unavailable_context)
                     ctx.exit(1)
 
-                state_bool: bool = True if state == "on" else False
+                old_state_bool = __capture.feature.get_state()
+                new_state_bool = True if state == "on" else False
 
-                if __capture.feature.get_state() == state_bool:
-                    _state = "enabled" if state_bool else "disabled"
-                    print(_("The preference '{0}' is already {1}.").format(__capture.display_name, _state))
+                if old_state_bool == new_state_bool:
+                    new_state_str = state_bool_to_str(new_state_bool)
+                    print(_("The preference '{0}' is already {1}.").format(__capture.display_name, new_state_str))
                     ctx.exit(0)
 
-                __capture.feature.set_state(CLIPresenter(), state_bool)
+                resulting_state_bool = __capture.feature.set_state(CLIPresenter(), new_state_bool)
+
+                print()
+                if old_state_bool == resulting_state_bool:
+                    print(ANSI_BLUE + _("The preference '{0}' was not changed.")
+                          .format(__capture.display_name) + ANSI_RESET)
+                else:
+                    resulting_state_str = state_bool_to_str(resulting_state_bool)
+                    print(ANSI_BLUE + _("The preference '{0}' was changed to {1}.")
+                          .format(__capture.display_name, resulting_state_str) + ANSI_RESET)
 
             feature_group.add_command(setter)
 
@@ -141,11 +155,21 @@ class SBCCApplicationCLI:
                     print(unavailable_context)
                     ctx.exit(1)
 
-                if __capture.feature.get_state() == state:
+                old_state = __capture.feature.get_state()
+
+                if old_state == state:
                     print(_("The preference '{0}' is already set to '{1}'.").format(__capture.display_name, state))
                     ctx.exit(0)
 
-                __capture.feature.set_state(CLIPresenter(), state)
+                resulting_state = __capture.feature.set_state(CLIPresenter(), state)
+
+                print()
+                if old_state == resulting_state:
+                    print(ANSI_BLUE + _("The preference '{0}' was not changed.")
+                          .format(__capture.display_name) + ANSI_RESET)
+                else:
+                    print(ANSI_BLUE + _("The preference '{0}' was changed from '{1}' to '{2}'.")
+                          .format(__capture.display_name, old_state, resulting_state) + ANSI_RESET)
 
             feature_group.add_command(setter)
 
