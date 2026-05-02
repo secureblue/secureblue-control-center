@@ -46,14 +46,14 @@ class TextDialog(BaseDialog):
         self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
 
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        if response_id == "ok":
+        if self.callback is not None and response_id == "ok":
             self.callback()
 
 
 class BooleanDialog(BaseDialog):
-    callback: Callable[[bool], Any] | None
+    callback: Callable[[bool], Any]
 
-    def __init__(self, callback: Callable[[bool], Any] = None, default: BooleanResponse = BooleanResponse.NONE,
+    def __init__(self, callback: Callable[[bool], Any], default: BooleanResponse = BooleanResponse.NONE,
                  suggested: BooleanResponse = BooleanResponse.NONE, destructive: BooleanResponse = BooleanResponse.NONE,
                  *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -79,10 +79,10 @@ class BooleanDialog(BaseDialog):
 
 
 class InputDialog(BaseDialog):
-    callback: Callable[[str], Any] | None
+    callback: Callable[[str], Any]
     entry_row: Adw.EntryRow
 
-    def __init__(self, entry_row: Adw.EntryRow | None = None, callback: Callable[[str], Any] = None, *args, **kwargs):
+    def __init__(self, callback: Callable[[str], Any], entry_row: Adw.EntryRow | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.callback = callback
@@ -139,7 +139,7 @@ class ProgressDialog(BaseDialog):
 
 
 class ChooserDialog(BaseDialog):
-    callback: Callable[[str], Any] | None = None
+    callback: Callable[[str], Any]
     list_box: Gtk.ListBox
     options: dict[str, Adw.ButtonRow]
 
@@ -190,7 +190,7 @@ class ChooserDialog(BaseDialog):
 class FatalErrorDialog(BaseDialog):
     callback: Callable[..., Any] | None
 
-    def __init__(self, callback: Callable[..., Any] = None):
+    def __init__(self, callback: Callable[..., Any] | None = None):
         super().__init__(
             heading=_("Fatal Error"),
             body=_("A fatal error has occurred.\nSee logs for additional information.\n\nThe application will exit.")
@@ -202,4 +202,5 @@ class FatalErrorDialog(BaseDialog):
         self.set_response_appearance("exit", Adw.ResponseAppearance.DESTRUCTIVE)
 
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        self.callback()
+        if self.callback is not None:
+            self.callback()
