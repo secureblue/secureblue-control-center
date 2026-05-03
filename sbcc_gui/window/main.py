@@ -9,7 +9,7 @@ from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_framework.feature.utility import Utility
 from sbcc_gui.page.utilities import UtilitiesPage
-from sbcc_gui.widget.dialog import FatalErrorDialog
+from sbcc_gui.widget.dialog import FatalErrorDialog, TextDialog
 from sbcc_gui.widget.row import SidebarRow, PreferenceRow, MultiPreferenceRow
 from sbcc_gui.page.home import HomePage
 from sbcc_gui.page.preferences import PreferencesPage
@@ -44,10 +44,14 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         )
 
         menu = Gio.Menu().new()
-        about_action = Gio.SimpleAction.new("about", None)
+        about_action = Gio.SimpleAction.new("about")
         about_action.connect("activate", self.show_about)
         self.add_action(about_action)
         menu.append(_("About"), "win.about")
+
+        pref_changed_action = Gio.SimpleAction.new("pref_changed_dialog")
+        pref_changed_action.connect("activate", self.__preference_changed_dialog)
+        self.add_action(pref_changed_action)
 
         toolbar_view = Adw.ToolbarView()
         header = Adw.HeaderBar()
@@ -129,6 +133,12 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                                                      f" reset to {_result[0]}")
 
                 try:
+                    current_state = compiled.feature.get_state()
+
+                    if current_state == _state:
+                        GLib.idle_add(self.__preference_changed_toast)
+                        return
+
                     result = compiled.feature.set_state(GUIPresenter(self, compiled, cancel_func), _state)
                 except UserCancelFeatureException:
                     raise
@@ -177,6 +187,12 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                                                      f" reset to {_result[0]}")
 
                 try:
+                    current_state = compiled.feature.get_state()
+
+                    if current_state == _state:
+                        GLib.idle_add(self.__preference_changed_toast)
+                        return
+
                     result = compiled.feature.set_state(GUIPresenter(self, compiled, cancel_func), _state)
                 except UserCancelFeatureException:
                     raise
@@ -190,6 +206,25 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                    args=(wrapper.get_selected_option(),)).start()
 
         self.preferences_page.add_multi_preference(compiled, on_change)
+
+    def __preference_changed_toast(self) -> None:
+        self.show_toast(Adw.Toast(
+            title=_("Preference was changed externally"),
+            timeout=5,
+            button_label=_("More information"),
+            action_name="win.pref_changed_dialog"
+        ))
+        self.sidebar.set_sensitive(True)
+        self.stack.set_sensitive(True)
+
+    # noinspection PyUnusedLocal
+    def __preference_changed_dialog(self, *args) -> None:
+        dialog = TextDialog(
+            heading=_("Information"),
+            body=_("This preference was changed by an external process while the application was open. "
+                   "Your selected state is already applied, so no further action is needed.")
+        )
+        dialog.choose(self)
 
     def add_utility(self, compiled: CompiledFeature[Utility]) -> None:
         def on_run(_) -> None:
