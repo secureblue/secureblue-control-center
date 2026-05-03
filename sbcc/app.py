@@ -19,7 +19,7 @@ _: Final = gettext_marker()
 
 @click.group(
     invoke_without_command=True,
-    help=_("The secureblue Control Center")
+    help="secureblue Control Center"
 )
 @click.option(
     "--version",
@@ -34,7 +34,7 @@ def launch(ctx: Context, gui: bool = False, version: bool = False) -> None:
         ctx.exit(1)
 
     if version:
-        print(_("secureblue Control Center v{0}").format(SBCC_VERSION))
+        print(f"secureblue Control Center v{SBCC_VERSION}")
         ctx.exit(0)
 
     if gui:
@@ -52,7 +52,8 @@ def launch(ctx: Context, gui: bool = False, version: bool = False) -> None:
 if has_gui():
     launch = click.option(
         "--gui",
-        help=_("Launches the secureblue Control Center graphical interface. Can not be combined with other subcommands."),
+        help=_("Launches the {0} graphical interface. Can not be combined with other subcommands."
+               .format("secureblue Control Center")),
         is_flag=True
     )(launch)
 
