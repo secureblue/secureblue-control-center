@@ -2,14 +2,14 @@
 
 ### Features:
 - Provides a UI-agnostic and thread-safe API for feature scripts (simply called features) to provide functionality to users.<br>
-  Write once, works in both CLI and GUI.
+  Write once, works in both CLI and GUI
 - Supports preferences (enable/disable functions), multi-preferences (non-binary functions, arbitrary states) and utilities (idempotent functions)
-  - Complex variants of `Preference` and `Utility` are available for the CLI frontend, allowing registration of custom subcommands and arguments, directly through the Click Command API.
+  - Complex variants of `Preference` and `Utility` are available for the CLI frontend, allowing registration of custom subcommands and arguments, directly through the Click Command API
 - Categories
-- Limiting features to specific frontends (CLI/GUI) or environments (server/desktop).
+- Limiting features to specific frontends (CLI/GUI) or environments (server/desktop)
 - gettext integration for translation
 - Native tab-completion support (courtesy of Click)
-- GUI support is fully optional. The `sbcc_gui` module can be removed; the application will remain functional and does not attempt to load related libraries.
+- GUI support is fully optional. The `sbcc_gui` module can be removed; the application will remain functional and does not attempt to load related libraries
 - Supports graceful user-cancellation of features in the GUI
 
 ### Usage:
