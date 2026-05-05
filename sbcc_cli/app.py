@@ -9,6 +9,7 @@ The CLI application
 import dataclasses
 import click
 
+from dataclasses import field
 from typing import Dict, Final, Any
 from click import Context, Group, pass_context, ParamType, Parameter
 from click.shell_completion import CompletionItem
@@ -36,22 +37,29 @@ def state_bool_to_str(value: bool) -> str:
 @dataclasses.dataclass
 class MultiPrefParamType(ParamType):
     name = "multi-pref"
-    modes: dict[str, str]
+    preference: MultiPreference
+    options: dict[str, str] = field(default_factory=dict)
+
+    def get_options(self) -> dict[str, str]:
+        if len(self.options) == 0:
+            self.options.update(self.preference.get_options())
+        return self.options
 
     def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
-        if value in self.modes:
+        if value in self.get_options():
             return value
         else:
-            self.fail(f"'{value}' is not one of " + ", ".join(f"'{k}'" for k in self.modes.keys()) + ".", param, ctx)
+            self.fail(f"'{value}' is not one of " + ", ".join(f"'{k}'" for k in self.get_options().keys()) + ".",
+                      param, ctx)
 
     def get_metavar(self, param: Parameter, ctx: Context) -> str | None:
-        return "{" + "|".join(self.modes.keys()) + "}"
+        return "{" + "|".join(self.get_options().keys()) + "}"
 
     def get_missing_message(self, param: Parameter, ctx: Context | None) -> str | None:
-        return "Choose from:\n" + ",\n".join(f"\t{k} ({v})" for k, v in self.modes.items())
+        return "Choose from:\n" + ",\n".join(f"\t{k} ({v})" for k, v in self.get_options().items())
 
     def shell_complete(self, ctx: Context, param: Parameter, incomplete: str) -> list[CompletionItem]:
-        return [CompletionItem(value=opt) for opt in self.modes.keys() if opt.startswith(incomplete)]
+        return [CompletionItem(value=opt) for opt in self.get_options().keys() if opt.startswith(incomplete)]
 
 
 class SBCCApplicationCLI:
@@ -146,7 +154,7 @@ class SBCCApplicationCLI:
             feature_group.add_command(getter)
 
             @click.command(name="set", help=_("Sets the state of this preference"))
-            @click.argument("state", type=MultiPrefParamType(multi_compiled.feature.get_options()))
+            @click.argument("state", type=MultiPrefParamType(multi_compiled.feature))
             @pass_context
             def setter(ctx: Context, state: str, *, __capture=multi_compiled):
                 unavailable_context = __capture.feature.is_available()
