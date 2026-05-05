@@ -52,8 +52,12 @@ class SBCCApplicationGUI(Adw.Application):
                 continue
             self.main_window.add_multi_preference(multi_compiled)
 
+        self.main_window.preferences_page.features_ready()
+
     def register_utilities(self) -> None:
         for compiled in Utility.REGISTRY:
             if not compiled.supports_gui() or not compiled.supports_environment():
                 continue
             self.main_window.add_utility(compiled)
+
+        self.main_window.utilities_page.features_ready()

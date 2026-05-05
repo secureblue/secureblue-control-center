@@ -16,10 +16,10 @@ _: Final = gettext_marker()
 
 class UtilitiesPage(FeaturesPage):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.set_title(_("Utilities"))
+        super().__init__(title=_("Utilities"), *args, **kwargs)
 
     def add_utility(self, compiled: CompiledFeature[Utility], callback: Callable[[UtilityRow], Any]) -> None:
+        self.feature_loading()
         category_name = compiled.category.name
         if category_name not in self.categories:
             self.insert_category(compiled.category)
@@ -42,10 +42,13 @@ class UtilitiesPage(FeaturesPage):
             row.set_tooltip_text(reason)
             row.set_activatable(False)
             row.set_sensitive(False)
+            self.feature_loaded()
 
         try:
             unavailable_context = compiled.feature.is_available()
             if unavailable_context is not None:
                 GLib.idle_add(disable_utility, unavailable_context)
+            else:
+                self.feature_loaded()
         except Exception as e:
             self.main_window.show_error_and_exit(compiled, e)
