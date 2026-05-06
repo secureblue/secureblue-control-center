@@ -17,7 +17,7 @@ from sbcc_cli.presenter import CLIPresenter
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import ComplexPreference, Preference, MultiPreference
 from sbcc_framework.feature.utility import ComplexUtility, Utility
-from util import gettext_marker, ANSI_BLUE, ANSI_RESET
+from sbcc_util import gettext_marker, ANSI_BLUE, ANSI_RESET
 
 _: Final = gettext_marker()
 

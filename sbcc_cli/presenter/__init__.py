@@ -13,7 +13,7 @@ from sbcc_framework.feature import BooleanResponse
 from sbcc_framework.presenter import Presenter
 from sbcc_framework.presenter.chooser import Chooser
 from sbcc_framework.presenter.progressbar import ProgressBar
-from util import gettext_marker, interruptible_ask, ANSI_BLUE, ANSI_RED, ANSI_RESET, ANSI_REMEMBER_CURSOR, \
+from sbcc_util import gettext_marker, interruptible_ask, ANSI_BLUE, ANSI_RED, ANSI_RESET, ANSI_REMEMBER_CURSOR, \
     ANSI_RESTORE_CURSOR
 
 _: Final = gettext_marker()

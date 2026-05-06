@@ -16,7 +16,7 @@ from sbcc_gui.page.preferences import PreferencesPage
 from sbcc_gui.presenter import GUIPresenter
 from sbcc_gui.widget.sidebar import Sidebar
 from sbcc_gui.window import Toastable
-from util import UserCancelFeatureException, gettext_marker, SBCC_VERSION
+from sbcc_util import UserCancelFeatureException, gettext_marker, SBCC_VERSION
 
 _: Final = gettext_marker()
 

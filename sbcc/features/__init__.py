@@ -7,7 +7,7 @@ import pkgutil
 
 from pathlib import Path
 from typing import Final
-from util import gettext_marker
+from sbcc_util import gettext_marker
 
 _: Final = gettext_marker()
 

@@ -6,7 +6,7 @@ from typing import Final
 from gi.repository import Adw, Gtk, GLib
 from sbcc_framework.feature import Category
 from sbcc_gui.window import Toastable
-from util import gettext_marker
+from sbcc_util import gettext_marker
 
 _: Final = gettext_marker()
 

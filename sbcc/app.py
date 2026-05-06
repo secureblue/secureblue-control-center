@@ -12,7 +12,7 @@ from typing import Final
 from click import Context
 from sbcc.features import load_features
 from sbcc_cli.app import SBCCApplicationCLI
-from util import gettext_marker, has_gui, SBCC_VERSION
+from sbcc_util import gettext_marker, has_gui, SBCC_VERSION
 
 _: Final = gettext_marker()
 

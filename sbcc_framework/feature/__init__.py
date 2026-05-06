@@ -7,7 +7,7 @@ import dataclasses
 from abc import ABC
 from enum import Enum, auto
 from typing import Callable, Final, List
-from util import gettext_marker, has_gui
+from sbcc_util import gettext_marker, has_gui
 
 _: Final = gettext_marker()
 

@@ -9,7 +9,7 @@ from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_gui.page import FeaturesPage
 from sbcc_gui.widget.row import PreferenceRow, MultiPreferenceRow
-from util import gettext_marker
+from sbcc_util import gettext_marker
 
 _: Final = gettext_marker()
 

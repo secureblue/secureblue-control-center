@@ -6,7 +6,7 @@ import sys
 
 from typing import Final
 from sbcc_framework.presenter.chooser import Chooser
-from util import gettext_marker, interruptible_ask, ANSI_REMEMBER_CURSOR, ANSI_RESTORE_CURSOR
+from sbcc_util import gettext_marker, interruptible_ask, ANSI_REMEMBER_CURSOR, ANSI_RESTORE_CURSOR
 
 _: Final = gettext_marker()
 

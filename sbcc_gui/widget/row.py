@@ -4,7 +4,7 @@
 
 from typing import Callable, Final, Self, cast
 from gi.repository import Gtk, Adw, GObject, Gio
-from util import gettext_marker
+from sbcc_util import gettext_marker
 
 _: Final = gettext_marker()
 

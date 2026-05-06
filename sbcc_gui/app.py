@@ -17,7 +17,7 @@ from typing import Final
 from sbcc_framework.feature.utility import Utility
 from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_gui.window.main import MainWindow
-from util import gettext_marker
+from sbcc_util import gettext_marker
 
 _: Final = gettext_marker()
 

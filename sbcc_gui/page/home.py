@@ -4,7 +4,7 @@
 
 from typing import Final
 from gi.repository import Adw
-from util import gettext_marker
+from sbcc_util import gettext_marker
 
 _: Final = gettext_marker()
 
