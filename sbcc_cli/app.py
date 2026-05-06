@@ -10,7 +10,7 @@ import dataclasses
 import click
 
 from dataclasses import field
-from typing import Dict, Final, Any
+from typing import Final, Any
 from click import Context, Group, pass_context, ParamType, Parameter
 from click.shell_completion import CompletionItem
 from sbcc_cli.presenter import CLIPresenter
@@ -22,7 +22,7 @@ from sbcc_util import gettext_marker, ANSI_BLUE, ANSI_RESET
 _: Final = gettext_marker()
 
 
-def add_category(command: click.Group, categories: Dict[str, Group], compiled: CompiledFeature):
+def add_category(command: click.Group, categories: dict[str, Group], compiled: CompiledFeature):
     category_name = compiled.category.name
     if category_name not in categories:
         group = click.group(name=category_name, help=compiled.category.description)(lambda: None)
@@ -74,7 +74,7 @@ class SBCCApplicationCLI:
     def register_preferences(self):
         pref_group = click.group(name="pref", help=_("All available preferences"))(lambda: None)
 
-        categories: Dict[str, Group] = {}
+        categories: dict[str, Group] = {}
 
         for compiled in Preference.REGISTRY:
             if not compiled.supports_cli() or not compiled.supports_environment():
@@ -201,7 +201,7 @@ class SBCCApplicationCLI:
     def register_utilities(self):
         utility_group = click.group(name="utility", help=_("All available utilities"))(lambda: None)
 
-        categories: Dict[str, Group] = {}
+        categories: dict[str, Group] = {}
 
         for compiled in Utility.REGISTRY:
             if not compiled.supports_cli() or not compiled.supports_environment():
