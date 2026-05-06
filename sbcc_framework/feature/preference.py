@@ -20,7 +20,7 @@ class Preference(Feature):
     @abstractmethod
     def get_state(self) -> bool:
         """
-        Invoked when the current state is requested.
+        Invoked when the current state of this preference is requested.
         :returns: The current state.
         """
         pass
@@ -28,7 +28,7 @@ class Preference(Feature):
     @abstractmethod
     def set_state(self, presenter: Presenter, state: bool) -> bool:
         """
-        Invoked when the user attempts to change the state. Implement enable/disable logic here.
+        Invoked when the user attempts to change the state of this preference.
         :param presenter: The presenter to interact with the user.
         :param state: The requested new state.
         :returns: The resulting state.
@@ -46,7 +46,7 @@ class MultiPreference(Feature):
     @abstractmethod
     def get_options(self) -> dict[str, str]:
         """
-        Invoked to register all valid states of this feature. The keys represent the valid states, the values are
+        Invoked to register all valid states of this preference. The keys represent the valid states, the values are
         display names to those states.
         :returns: A dictionary mapping each valid state to its display name.
         """
@@ -55,7 +55,7 @@ class MultiPreference(Feature):
     @abstractmethod
     def get_state(self) -> str:
         """
-        Invoked when the current state is requested.
+        Invoked when the current state of this preference is requested.
         :returns: The current state.
         """
         pass
@@ -63,7 +63,7 @@ class MultiPreference(Feature):
     @abstractmethod
     def set_state(self, presenter: Presenter, state: str) -> str:
         """
-        Invoked when the user attempts to change the state. Implement enable/disable logic here.
+        Invoked when the user attempts to change the state of this preference.
         :param presenter: The presenter to interact with the user.
         :param state: The requested new state.
         :returns: The resulting state.

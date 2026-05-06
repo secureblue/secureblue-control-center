@@ -20,7 +20,7 @@ class Utility(Feature):
     @abstractmethod
     def run(self, presenter: Presenter) -> int | None:
         """
-        Invoked when this utility is run by the user. Implement utility logic here.
+        Invoked when this utility is run by the user.
         :param presenter: The presenter to interact with the user.
         :returns: The exit code to return when run in CLI mode, or `None`.
         """
