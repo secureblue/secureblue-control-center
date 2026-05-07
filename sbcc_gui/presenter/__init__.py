@@ -7,7 +7,7 @@ import dataclasses
 from threading import Event
 from typing import Any, Callable
 from gi.repository import Adw, GLib
-from sbcc_framework import PresenterInterface
+from sbcc_framework import PresenterLock
 from sbcc_framework.feature import CompiledFeature, BooleanResponse
 from sbcc_framework.presenter import Chooser, Presenter, ProgressBar
 from sbcc_gui.presenter.chooser import GUIChooser
@@ -17,7 +17,7 @@ from sbcc_gui.window import Toastable
 
 
 @dataclasses.dataclass
-class GUIPresenter(Presenter, PresenterInterface):
+class GUIPresenter(PresenterLock, Presenter):
     main_window: Toastable
     compiled: CompiledFeature
     cancel_func: Callable[..., Any]
@@ -118,9 +118,6 @@ class GUIPresenter(Presenter, PresenterInterface):
 
     def create_chooser(self) -> Chooser:
         return GUIChooser(self, self.main_window, self.compiled)
-
-    def is_blocked(self) -> bool:
-        return self._blocked
 
     def cancel(self) -> None:
         self.cancel_func()

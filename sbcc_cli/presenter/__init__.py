@@ -8,7 +8,7 @@ import sys
 from typing import Final
 from sbcc_cli.presenter.chooser import CLIChooser
 from sbcc_cli.presenter.progressbar import CLIProgressBar
-from sbcc_framework import PresenterInterface
+from sbcc_framework import PresenterLock
 from sbcc_framework.feature import BooleanResponse
 from sbcc_framework.presenter import Presenter
 from sbcc_framework.presenter.chooser import Chooser
@@ -19,7 +19,7 @@ from sbcc_util import gettext_marker, interruptible_ask, ANSI_BLUE, ANSI_RED, AN
 _: Final = gettext_marker()
 
 
-class CLIPresenter(Presenter, PresenterInterface):
+class CLIPresenter(PresenterLock, Presenter):
     def _show_text(self, text: str) -> None:
         print(text)
 
@@ -79,9 +79,3 @@ class CLIPresenter(Presenter, PresenterInterface):
 
     def create_chooser(self) -> Chooser:
         return CLIChooser(self)
-
-    def is_blocked(self) -> bool:
-        return self._blocked
-
-    def cancel(self) -> None:
-        pass

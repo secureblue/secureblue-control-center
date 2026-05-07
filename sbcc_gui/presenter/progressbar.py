@@ -5,7 +5,7 @@
 from threading import Event, Thread
 from time import sleep
 from gi.repository import GLib
-from sbcc_framework import PresenterInterface
+from sbcc_framework import PresenterLock
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import ProgressBar
 from sbcc_gui.widget.dialog import ProgressDialog
@@ -22,7 +22,7 @@ class GUIProgressBar(ProgressBar):
     context: str = ""
     pulse: bool = False
 
-    def __init__(self, presenter: PresenterInterface, main_window: Toastable, compiled: CompiledFeature):
+    def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature):
         super().__init__(presenter)
 
         self.main_window = main_window

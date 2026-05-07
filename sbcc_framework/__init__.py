@@ -6,25 +6,22 @@
 The secureblue Control Center framework, providing a UI-agnostic, thread-safe API to interact with the user.
 """
 
-from abc import ABC, abstractmethod
 
-
-class PresenterInterface(ABC):
+class PresenterLock:
     """
-    Utility class to avoid circular dependencies.
+    Holds the lock for blocking presenters.
     """
 
-    _blocked: bool = False
+    __blocked: bool = False
 
     def is_blocked(self) -> bool:
-        return self._blocked
+        return self.__blocked
 
     def block(self) -> None:
-        self._blocked = True
+        self.__blocked = True
 
     def unblock(self) -> None:
-        self._blocked = False
+        self.__blocked = False
 
-    @abstractmethod
     def cancel(self):
-        pass
+        raise RuntimeError("Cancelling is not implemented for this presenter")

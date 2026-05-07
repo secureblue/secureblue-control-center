@@ -5,7 +5,7 @@
 from threading import Event
 from typing import Any
 from gi.repository import GLib
-from sbcc_framework import PresenterInterface
+from sbcc_framework import PresenterLock
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import Chooser
 from sbcc_gui.widget.dialog import ChooserDialog
@@ -17,7 +17,7 @@ class GUIChooser(Chooser):
     compiled: CompiledFeature
     context: str = ""
 
-    def __init__(self, presenter: PresenterInterface, main_window: Toastable, compiled: CompiledFeature):
+    def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature):
         super().__init__(presenter)
 
         self.main_window = main_window

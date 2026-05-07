@@ -6,7 +6,7 @@ import dataclasses
 
 from abc import ABC, abstractmethod
 from dataclasses import field
-from sbcc_framework import PresenterInterface
+from sbcc_framework import PresenterLock
 
 
 @dataclasses.dataclass
@@ -15,7 +15,7 @@ class Chooser(ABC):
     A chooser. Allows to prompt the user for a set of options.
     """
 
-    _presenter: PresenterInterface
+    _presenter: PresenterLock
     _options: dict[str, str] = field(default_factory=dict)
 
     @abstractmethod

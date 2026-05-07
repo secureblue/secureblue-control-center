@@ -5,7 +5,7 @@
 import dataclasses
 
 from abc import ABC, abstractmethod
-from sbcc_framework import PresenterInterface
+from sbcc_framework import PresenterLock
 
 
 @dataclasses.dataclass
@@ -14,7 +14,7 @@ class ProgressBar(ABC):
     A progress bar. Can show progress and a context above the progress bar.
     """
 
-    _presenter: PresenterInterface
+    _presenter: PresenterLock
 
     def show(self) -> None:
         """
