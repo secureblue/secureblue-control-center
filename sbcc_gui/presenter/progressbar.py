@@ -96,20 +96,20 @@ class GUIProgressBar(ProgressBar):
 
         self.pulse = mode
         if self.pulse:
-            Thread(name="sbcc_gui:progressbar", target=self.__tick_pulse, daemon=True).start()
+            Thread(name="sbcc_gui:progressbar", target=self._tick_pulse, daemon=True).start()
         else:
             self.set_progress(self.progress)
 
-    def __tick_pulse(self) -> None:
+    def _tick_pulse(self) -> None:
         if self.show_percentage:
-            self.__set_show_percentage(False)
+            self._set_show_percentage(False)
 
         while self.active and self.pulse:
             GLib.idle_add(lambda: self.dialog.get_progress_bar().pulse())
             sleep(0.2)
 
         if self.show_percentage:
-            self.__set_show_percentage(True)
+            self._set_show_percentage(True)
 
     def get_show_percentage(self) -> bool:
         return self.show_percentage
@@ -117,7 +117,7 @@ class GUIProgressBar(ProgressBar):
     def set_show_percentage(self, value: bool) -> None:
         self.show_percentage = value
         if not self.pulse:
-            self.__set_show_percentage(self.show_percentage)
+            self._set_show_percentage(self.show_percentage)
 
-    def __set_show_percentage(self, value: bool) -> None:
+    def _set_show_percentage(self, value: bool) -> None:
         GLib.idle_add(lambda: self.dialog.set_show_percentage(value))
