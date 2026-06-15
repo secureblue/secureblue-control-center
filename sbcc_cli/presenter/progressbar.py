@@ -56,14 +56,12 @@ class CLIProgressBar(ProgressBar):
         return self.progress
 
     def set_progress(self, value: float) -> None:
-        self.progress = value
+        self.progress = min(value, 1)
         self.pulse = False
         self.changed = True
 
     def add_progress(self, value: float) -> None:
-        self.progress += value
-        self.pulse = False
-        self.changed = True
+        self.set_progress(self.get_progress() + value)
 
     def get_context(self) -> str:
         return self.context if self.context is not None else ""

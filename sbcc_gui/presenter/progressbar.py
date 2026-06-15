@@ -43,12 +43,12 @@ class GUIProgressBar(ProgressBar):
 
         self._presenter.block()
 
-        def apply_show(_event: Event) -> None:
+        def do_show(_event: Event) -> None:
             self.dialog.present(self.main_window.get_window())
             _event.set()
 
         event = Event()
-        GLib.idle_add(apply_show, event)
+        GLib.idle_add(do_show, event)
         event.wait()
 
     def close(self) -> None:
@@ -56,13 +56,13 @@ class GUIProgressBar(ProgressBar):
             raise RuntimeError("ProgressBar is not active")
         self.active = False
 
-        def apply_close(_event: Event) -> None:
+        def do_close(_event: Event) -> None:
             self.dialog.close()
             self._presenter.unblock()
             _event.set()
 
         event = Event()
-        GLib.idle_add(apply_close, event)
+        GLib.idle_add(do_close, event)
         event.wait()
 
     def is_active(self) -> bool:
@@ -73,26 +73,18 @@ class GUIProgressBar(ProgressBar):
 
     def set_progress(self, value: float) -> None:
         self.pulse = False
-
-        def apply_progress(_value: float) -> None:
-            self.dialog.get_progress_bar().set_fraction(_value)
-
-        GLib.idle_add(apply_progress, value)
-        self.progress = value
+        self.progress = min(value, 1)
+        GLib.idle_add(lambda: self.dialog.get_progress_bar().set_fraction(self.progress))
 
     def add_progress(self, value: float) -> None:
-        new_value = self.get_progress() + value
-        self.set_progress(new_value)
+        self.set_progress(self.get_progress() + value)
 
     def get_context(self) -> str:
         return self.context
 
     def set_context(self, context: str) -> None:
-        def apply_context(_context: str) -> None:
-            self.dialog.set_body(_context)
-
-        GLib.idle_add(apply_context, context)
         self.context = context
+        GLib.idle_add(lambda: self.dialog.set_body(self.context))
 
     def get_pulse(self) -> bool:
         return self.pulse
@@ -102,15 +94,12 @@ class GUIProgressBar(ProgressBar):
             return
 
         self.pulse = mode
-        if mode:
-            Thread(name="sbcc_gui:progressbar", target=self.tick_pulse, daemon=True).start()
+        if self.pulse:
+            Thread(name="sbcc_gui:progressbar", target=self.__tick_pulse, daemon=True).start()
         else:
             self.set_progress(self.progress)
 
-    def tick_pulse(self) -> None:
-        def apply_pulse() -> None:
-            self.dialog.get_progress_bar().pulse()
-
+    def __tick_pulse(self) -> None:
         while self.active and self.pulse:
-            GLib.idle_add(apply_pulse)
+            GLib.idle_add(lambda: self.dialog.get_progress_bar().pulse())
             sleep(0.2)
