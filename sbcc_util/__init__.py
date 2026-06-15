@@ -6,8 +6,9 @@ import gettext
 import importlib.util
 import sys
 
-from typing import Callable, Final
+from typing import Callable, Final, TypeVar
 
+SBCC_APPLICATION_ID: Final = "dev.secureblue.controlcenter"
 SBCC_VERSION: Final = "1.0.0"
 SBCC_WEBSITE: Final = "https://secureblue.dev/"
 SBCC_ISSUES_PAGE: Final = "https://github.com/secureblue/secureblue-control-center/issues"
@@ -52,6 +53,19 @@ def interruptible_ask(banner: str) -> str:
         print()
         sys.exit(130)
     return response
+
+
+T = TypeVar("T")
+
+
+def require_not_none(obj: T | None) -> T:
+    """
+    Convenience function to strip None-types in contexts where it is known to be impossible to occur.
+    (or should raise an error if it does)
+    """
+    if obj is None:
+        raise ValueError("Illegal None value")
+    return obj
 
 
 class UserCancelFeatureException(Exception):

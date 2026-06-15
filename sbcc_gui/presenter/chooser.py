@@ -32,7 +32,7 @@ class GUIChooser(Chooser):
     def _choose(self, default: str | None) -> str:
         self._presenter.block()
 
-        def show_dialog(_event: Event, _result: list[Any]):
+        def show_dialog(_event: Event, _result: list[Any]) -> None:
             def apply(choice: str) -> None:
                 _result[0] = choice
                 _event.set()

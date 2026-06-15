@@ -16,7 +16,8 @@ from sbcc_gui.page.preferences import PreferencesPage
 from sbcc_gui.presenter import GUIPresenter
 from sbcc_gui.widget.sidebar import Sidebar
 from sbcc_gui.window import Toastable
-from sbcc_util import UserCancelFeatureException, gettext_marker, SBCC_VERSION, SBCC_ISSUES_PAGE, SBCC_WEBSITE
+from sbcc_util import UserCancelFeatureException, gettext_marker, SBCC_VERSION, SBCC_ISSUES_PAGE, SBCC_WEBSITE, \
+    SBCC_APPLICATION_ID, require_not_none
 
 _: Final = gettext_marker()
 
@@ -35,9 +36,11 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         self.set_default_size(800, 700)
 
+        application_name = require_not_none(GLib.get_application_name())
+
         self.about = Adw.AboutDialog(
-            application_name=GLib.get_application_name(),
-            application_icon=self.get_application().get_application_id(),
+            application_name=application_name,
+            application_icon=SBCC_APPLICATION_ID,
             developer_name="The secureblue authors",
             developers=["pxlkng"],
             version=SBCC_VERSION,
@@ -67,7 +70,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         toolbar_view.set_content(self.toast_overlay)
 
         splitview = Adw.NavigationSplitView()
-        splitview.set_content(Adw.NavigationPage(title=GLib.get_application_name(), child=toolbar_view))
+        splitview.set_content(Adw.NavigationPage(title=application_name, child=toolbar_view))
         self.sidebar = Sidebar()
         splitview.set_sidebar(Adw.NavigationPage(title=_("Menu"), child=self.sidebar))
         self.set_content(splitview)
@@ -262,7 +265,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
     def show_error_and_exit(self, feature: CompiledFeature, e: Exception) -> None:
         def show_error() -> None:
-            dialog = FatalErrorDialog(callback=lambda: self.get_application().quit())
+            dialog = FatalErrorDialog(callback=lambda: require_not_none(self.get_application()).quit())
             dialog.present(self)
 
         GLib.idle_add(show_error)

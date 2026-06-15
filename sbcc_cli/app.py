@@ -22,7 +22,7 @@ from sbcc_util import gettext_marker, ANSI_BLUE, ANSI_RESET
 _: Final = gettext_marker()
 
 
-def add_category(command: click.Group, categories: dict[str, Group], compiled: CompiledFeature):
+def add_category(command: click.Group, categories: dict[str, Group], compiled: CompiledFeature) -> None:
     category_name = compiled.category.name
     if category_name not in categories:
         group = click.group(name=category_name, help=compiled.category.description)(lambda: None)
@@ -71,7 +71,7 @@ class SBCCApplicationCLI:
         self.register_preferences()
         self.register_utilities()
 
-    def register_preferences(self):
+    def register_preferences(self) -> None:
         pref_group = click.group(name="pref", help=_("All available preferences"))(lambda: None)
 
         categories: dict[str, Group] = {}
@@ -87,7 +87,7 @@ class SBCCApplicationCLI:
 
             @click.command(name="get", help=_("Prints the current state of this preference"))
             @pass_context
-            def getter(ctx: Context, *, __capture=compiled):
+            def getter(ctx: Context, *, __capture=compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -102,7 +102,7 @@ class SBCCApplicationCLI:
             @click.command(name="set", help=_("Sets the state of this preference"))
             @click.argument("state", type=click.Choice(["on", "off"]))
             @pass_context
-            def setter(ctx: Context, state: str, *, __capture=compiled):
+            def setter(ctx: Context, state: str, *, __capture=compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -141,7 +141,7 @@ class SBCCApplicationCLI:
 
             @click.command(name="get", help=_("Prints the current state of this preference"))
             @pass_context
-            def getter(ctx: Context, *, __capture=multi_compiled):
+            def getter(ctx: Context, *, __capture=multi_compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -156,7 +156,7 @@ class SBCCApplicationCLI:
             @click.command(name="set", help=_("Sets the state of this preference"))
             @click.argument("state", type=MultiPrefParamType(multi_compiled.feature))
             @pass_context
-            def setter(ctx: Context, state: str, *, __capture=multi_compiled):
+            def setter(ctx: Context, state: str, *, __capture=multi_compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -198,7 +198,7 @@ class SBCCApplicationCLI:
 
         self.main_command.add_command(pref_group)
 
-    def register_utilities(self):
+    def register_utilities(self) -> None:
         utility_group = click.group(name="utility", help=_("All available utilities"))(lambda: None)
 
         categories: dict[str, Group] = {}
@@ -211,7 +211,7 @@ class SBCCApplicationCLI:
 
             @click.command(name=compiled.name, help=compiled.description)
             @pass_context
-            def utility(ctx: Context, *, __capture=compiled):
+            def utility(ctx: Context, *, __capture=compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The utility '{0}' is not available:").format(__capture.display_name))

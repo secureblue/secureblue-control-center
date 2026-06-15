@@ -17,7 +17,7 @@ from typing import Final
 from sbcc_framework.feature.utility import Utility
 from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_gui.window.main import MainWindow
-from sbcc_util import gettext_marker
+from sbcc_util import gettext_marker, SBCC_APPLICATION_ID
 
 _: Final = gettext_marker()
 
@@ -26,7 +26,7 @@ class SBCCApplicationGUI(Adw.Application):
     main_window: MainWindow
 
     def __init__(self):
-        super().__init__(application_id="dev.secureblue.controlcenter")
+        super().__init__(application_id=SBCC_APPLICATION_ID)
         GLib.set_application_name("secureblue Control Center")
 
     def do_activate(self) -> None:

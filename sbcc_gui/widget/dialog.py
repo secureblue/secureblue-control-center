@@ -6,7 +6,7 @@ from abc import abstractmethod
 from typing import Any, Callable, Final
 from gi.repository import Gtk, Adw
 from sbcc_framework.feature import BooleanResponse
-from sbcc_util import gettext_marker
+from sbcc_util import gettext_marker, require_not_none
 
 _: Final = gettext_marker()
 
@@ -15,7 +15,7 @@ class BaseDialog(Adw.AlertDialog):
     cancel_func: Callable[..., Any] | None
     had_response: bool = False
 
-    def __init__(self, cancel_func: Callable[..., Any] = None, *args, **kwargs):
+    def __init__(self, cancel_func: Callable[..., Any] | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.cancel_func = cancel_func
@@ -37,7 +37,7 @@ class BaseDialog(Adw.AlertDialog):
 class TextDialog(BaseDialog):
     callback: Callable[..., Any] | None
 
-    def __init__(self, callback: Callable[..., Any] = None, *args, **kwargs):
+    def __init__(self, callback: Callable[..., Any] | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.callback = callback
@@ -208,7 +208,7 @@ class ChooserDialog(BaseDialog):
 
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if self.callback and response_id == "submit":
-            self.callback(self.list_box.get_selected_row().get_name())
+            self.callback(require_not_none(self.list_box.get_selected_row()).get_name())
 
 
 class FatalErrorDialog(BaseDialog):

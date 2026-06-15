@@ -31,8 +31,8 @@ class GUIPresenter(PresenterLock, Presenter):
     def _show_prompt_text(self, prompt_text: str) -> None:
         self.block()
 
-        def show_dialog(text: str, _event: Event, _result: list[bool]):
-            def cancel():
+        def show_dialog(text: str, _event: Event, _result: list[bool]) -> None:
+            def cancel() -> None:
                 _result[0] = False
                 _event.set()
 
@@ -54,7 +54,7 @@ class GUIPresenter(PresenterLock, Presenter):
                              destructive: BooleanResponse) -> bool:
         self.block()
 
-        def show_dialog(text: str, _event: Event, _result: list[bool]):
+        def show_dialog(text: str, _event: Event, _result: list[bool]) -> None:
             def apply(choice: bool) -> None:
                 _result[0] = choice
                 _event.set()
@@ -88,7 +88,7 @@ class GUIPresenter(PresenterLock, Presenter):
     def __show_prompt_str(self, dialog_type: type[InputDialog], prompt_text: str) -> str:
         self.block()
 
-        def show_dialog(text: str, _event: Event, _result: list[Any]):
+        def show_dialog(text: str, _event: Event, _result: list[Any]) -> None:
             def apply(choice: str) -> None:
                 _result[0] = choice
                 _event.set()
