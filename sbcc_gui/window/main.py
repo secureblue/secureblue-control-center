@@ -39,7 +39,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             application_name=GLib.get_application_name(),
             application_icon=self.get_application().get_application_id(),
             developer_name="The secureblue authors",
-            developers=["PXLKNG"],
+            developers=["pxlkng"],
             version=SBCC_VERSION,
             website=SBCC_WEBSITE,
             issue_url=SBCC_ISSUES_PAGE,
