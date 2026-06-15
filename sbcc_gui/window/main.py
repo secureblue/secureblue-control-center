@@ -16,7 +16,7 @@ from sbcc_gui.page.preferences import PreferencesPage
 from sbcc_gui.presenter import GUIPresenter
 from sbcc_gui.widget.sidebar import Sidebar
 from sbcc_gui.window import Toastable
-from sbcc_util import UserCancelFeatureException, gettext_marker, SBCC_VERSION
+from sbcc_util import UserCancelFeatureException, gettext_marker, SBCC_VERSION, SBCC_ISSUES_PAGE, SBCC_WEBSITE
 
 _: Final = gettext_marker()
 
@@ -40,7 +40,9 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             application_icon=self.get_application().get_application_id(),
             developer_name="The secureblue authors",
             developers=["PXLKNG"],
-            version=SBCC_VERSION
+            version=SBCC_VERSION,
+            website=SBCC_WEBSITE,
+            issue_url=SBCC_ISSUES_PAGE,
         )
 
         menu = Gio.Menu().new()

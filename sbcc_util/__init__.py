@@ -9,6 +9,8 @@ import sys
 from typing import Callable, Final
 
 SBCC_VERSION: Final = "1.0.0"
+SBCC_WEBSITE: Final = "https://secureblue.dev/"
+SBCC_ISSUES_PAGE: Final = "https://github.com/secureblue/secureblue-control-center/issues"
 
 
 ANSI_BLUE: Final = "\033[94m"
