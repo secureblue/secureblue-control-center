@@ -18,6 +18,7 @@ class CLIProgressBar(ProgressBar):
     pulse: bool = False
     pulse_dir: int = 1
     pulse_pos: int = 0
+    show_percentage: bool = False
     changed: bool = False
     render_interval: float = 0.1
     width: int = 50
@@ -76,6 +77,13 @@ class CLIProgressBar(ProgressBar):
         self.pulse = mode
         self.changed = True
 
+    def get_show_percentage(self) -> bool:
+        return self.show_percentage
+
+    def set_show_percentage(self, value: bool) -> None:
+        self.show_percentage = value
+        self.changed = True
+
     def tick(self) -> None:
         while self.active:
             if self.changed or self.pulse:
@@ -128,7 +136,12 @@ class CLIProgressBar(ProgressBar):
                     or (self.pulse_dir == -1 and self.pulse_pos == 0)):
                 self.pulse_dir = -self.pulse_dir
             self.pulse_pos += self.pulse_dir
-        print("]")
+        print("]", end="")
+
+        if self.show_percentage and not self.pulse:
+            print(f" {(self.progress * 100):g}%")
+        else:
+            print()
 
     def print_context(self) -> None:
         if self.context is None:

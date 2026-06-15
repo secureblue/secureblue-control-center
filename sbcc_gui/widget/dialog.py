@@ -117,22 +117,46 @@ class PasswordDialog(InputDialog):
 
 class ProgressDialog(BaseDialog):
     progress_bar: Gtk.ProgressBar
+    body: Gtk.Label
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, body: str | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.progress_bar = Gtk.ProgressBar()
+        self.body = Gtk.Label(margin_bottom=30)
+
         group = Adw.PreferencesGroup()
         group.add(self.progress_bar)
-        self.set_extra_child(group)
+
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        box.append(self.body)
+        box.append(group)
+
+        self.set_extra_child(box)
+
+        if body is not None:
+            self.set_body(body)
 
         self.set_can_close(False)
+
+    def set_body(self, body) -> None:
+        self.body.set_text(body)
 
     def close(self) -> None:
         self.force_close()
 
     def get_progress_bar(self) -> Gtk.ProgressBar:
         return self.progress_bar
+
+    def set_show_percentage(self, value: bool) -> None:
+        self.progress_bar.set_show_text(value)
+
+        # Dynamically adjust for additional space occupied by
+        # the percentage being shown above the progress bar.
+        if value:
+            self.body.set_margin_bottom(14)
+        else:
+            self.body.set_margin_bottom(30)
 
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         pass

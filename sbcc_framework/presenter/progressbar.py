@@ -102,3 +102,18 @@ class ProgressBar(ABC):
         :param mode: The pulse mode (on/off).
         """
         pass
+
+    @abstractmethod
+    def get_show_percentage(self) -> bool:
+        """
+        Retrieves whether this progress bar should display its progress percentage.
+        """
+        pass
+
+    @abstractmethod
+    def set_show_percentage(self, value: bool) -> None:
+        """
+        Sets whether this progress bar should display its progress percentage. Defaults to false.
+        :param value: Whether to show the progress percentage.
+        """
+        pass

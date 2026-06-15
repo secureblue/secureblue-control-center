@@ -21,6 +21,7 @@ class GUIProgressBar(ProgressBar):
     progress: float = 0
     context: str = ""
     pulse: bool = False
+    show_percentage: bool = False
 
     def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature):
         super().__init__(presenter)
@@ -100,6 +101,23 @@ class GUIProgressBar(ProgressBar):
             self.set_progress(self.progress)
 
     def __tick_pulse(self) -> None:
+        if self.show_percentage:
+            self.__set_show_percentage(False)
+
         while self.active and self.pulse:
             GLib.idle_add(lambda: self.dialog.get_progress_bar().pulse())
             sleep(0.2)
+
+        if self.show_percentage:
+            self.__set_show_percentage(True)
+
+    def get_show_percentage(self) -> bool:
+        return self.show_percentage
+
+    def set_show_percentage(self, value: bool) -> None:
+        self.show_percentage = value
+        if not self.pulse:
+            self.__set_show_percentage(self.show_percentage)
+
+    def __set_show_percentage(self, value: bool) -> None:
+        GLib.idle_add(lambda: self.dialog.set_show_percentage(value))
