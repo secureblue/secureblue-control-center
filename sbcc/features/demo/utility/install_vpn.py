@@ -31,14 +31,22 @@ class InstallVPN(Utility):
         provider = self.providers[choice]
 
         progress_bar = presenter.create_progress_bar()
+        progress_bar.set_show_percentage(True)
         progress_bar.set_context(f"Installing {provider}...")
         progress_bar.show()
         while progress_bar.get_progress() < 1:
+            if progress_bar.get_progress() > 0.5:
+                progress_bar.set_show_percentage(False)
             progress_bar.add_progress(0.1)
             sleep(0.5)
+        progress_bar.set_show_percentage(True)
         progress_bar.set_pulse(True)
         progress_bar.set_context("Cleaning up")
         sleep(4)
+        progress_bar.set_progress(0)
+        while progress_bar.get_progress() < 1:
+            progress_bar.add_progress(0.1)
+            sleep(0.1)
         progress_bar.close()
         presenter.show_prompt_text(f"{provider} was installed successfully!")
 
