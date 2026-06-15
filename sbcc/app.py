@@ -52,7 +52,7 @@ def launch(ctx: Context, gui: bool = False, version: bool = False) -> None:
 if has_gui():
     launch = click.option(
         "--gui",
-        help=_("Launches the {0} graphical interface."
+        help=_("Launches the {0} graphical interface. "
                "Can not be combined with other subcommands.").format("secureblue Control Center"),
         is_flag=True
     )(launch)
