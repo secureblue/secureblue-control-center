@@ -1,7 +1,13 @@
 # IDEs
 .idea/
 
-# Python
-.venv/
+# Python-generated files
 __pycache__/
-*.pyc
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
