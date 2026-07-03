@@ -192,6 +192,8 @@ class ChooserDialog(BaseDialog):
                     margin_bottom=5
                 )
             )
+        row.connect("activate", self._on_activate)
+
         self.list_box.append(row)
         self.options[key] = row
 
@@ -205,6 +207,11 @@ class ChooserDialog(BaseDialog):
         if key not in self.options:
             raise ValueError("No such key")
         self.list_box.select_row(self.options[key])
+
+    # noinspection PyUnusedLocal
+    def _on_activate(self, row: Adw.ButtonRow) -> None:
+        self.emit("response", "submit")
+        self.close()
 
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if self.callback and response_id == "submit":
