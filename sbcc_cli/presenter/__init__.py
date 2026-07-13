@@ -5,10 +5,10 @@
 import getpass
 import sys
 
-from typing import Final
+from typing import Final, Callable
 from sbcc_cli.presenter.chooser import CLIChooser
 from sbcc_cli.presenter.progressbar import CLIProgressBar
-from sbcc_framework import PresenterLock
+from sbcc_framework import PresenterLock, Regex
 from sbcc_framework.feature import BooleanResponse
 from sbcc_framework.presenter import Presenter
 from sbcc_framework.presenter.chooser import Chooser
@@ -17,6 +17,24 @@ from sbcc_util import gettext_marker, interruptible_ask, ANSI_BLUE, ANSI_RED, AN
     ANSI_RESTORE_CURSOR
 
 _: Final = gettext_marker()
+
+
+def _prompt_until_valid(prompt_func: Callable[[str], str], prompt_text: str, prompt_regex: Regex | None) -> str:
+    while True:
+        choice = prompt_func(prompt_text + ": ")
+        if prompt_regex is None or prompt_regex.match(choice):
+            break
+        else:
+            print(
+                ANSI_RED +
+                (
+                    _("Input does not match required pattern.")
+                    if prompt_regex is None or not prompt_regex.has_context()
+                    else _("Invalid input: {0}").format(prompt_regex.get_context())
+                )
+                + ANSI_RESET
+            )
+    return choice
 
 
 class CLIPresenter(PresenterLock, Presenter):
@@ -62,15 +80,15 @@ class CLIPresenter(PresenterLock, Presenter):
             else:
                 print(_("Invalid input. Please enter y or n."))
 
-    def _show_prompt_input(self, prompt_text: str) -> str:
+    def _show_prompt_input(self, prompt_text: str, prompt_regex: Regex | None) -> str:
         self.block()
-        choice = interruptible_ask(prompt_text + ": ")
+        choice = _prompt_until_valid(interruptible_ask, prompt_text, prompt_regex)
         self.unblock()
         return choice
 
-    def _show_prompt_password(self, prompt_text: str) -> str:
+    def _show_prompt_password(self, prompt_text: str, prompt_regex: Regex | None) -> str:
         self.block()
-        password = getpass.getpass(prompt_text + ": ")
+        password = _prompt_until_valid(getpass.getpass, prompt_text, prompt_regex)
         self.unblock()
         return password
 

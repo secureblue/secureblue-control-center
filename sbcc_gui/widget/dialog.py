@@ -5,6 +5,7 @@
 from abc import abstractmethod
 from typing import Any, Callable, Final
 from gi.repository import Gtk, Adw
+from sbcc_framework import Regex
 from sbcc_framework.feature import BooleanResponse
 from sbcc_util import gettext_marker, require_not_none
 
@@ -21,6 +22,8 @@ class BaseDialog(Adw.AlertDialog):
         self.cancel_func = cancel_func
 
         self.connect("response", self._on_response_internal)
+
+        self.add_css_class("view")
 
     @abstractmethod
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
@@ -78,36 +81,118 @@ class BooleanDialog(BaseDialog):
             self.callback(response_id == "yes")
 
 
-class InputDialog(BaseDialog):
+class InputDialog(Adw.Dialog):
     callback: Callable[[str], Any]
     entry_row: Adw.EntryRow
+    regex: Regex | None
+    cancel_func: Callable[..., Any] | None
+    popover: Gtk.Popover
+    had_response: bool = False
+    input_invalid: bool = False
 
-    def __init__(self, callback: Callable[[str], Any], entry_row: Adw.EntryRow | None = None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, heading: str, body: str, callback: Callable[[str], Any], entry_row: Adw.EntryRow | None = None,
+                 regex: Regex | None = None, cancel_func: Callable[..., Any] | None = None, *args, **kwargs):
+        super().__init__(*args, **kwargs, width_request=350)
 
         self.callback = callback
-
         self.entry_row = Adw.EntryRow(title=_("Enter text")) if entry_row is None else entry_row
-        group = Adw.PreferencesGroup()
-        group.add(self.entry_row)
-        self.set_extra_child(group)
+        self.regex = regex
+        self.cancel_func = cancel_func
 
-        self.add_response("ok", _("Ok"))
-        self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
+        box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            margin_top=30, margin_bottom=30, margin_start=30, margin_end=30
+        )
+
+        box.append(
+            Gtk.Label(
+                label=heading,
+                css_classes=["heading", "title-3"],
+                margin_bottom=10
+            )
+        )
+        box.append(
+            Gtk.Label(label=body, margin_bottom=20)
+        )
+
+        group = Adw.PreferencesGroup(margin_bottom=28)
+        group.add(self.entry_row)
+        box.append(group)
+
+        button = Gtk.Button(label=_("Submit"), css_classes=["suggested-action"])
+        button.connect("clicked", self._on_submit)
+        box.append(button)
+
+        self.set_child(box)
+
+        if regex is not None and regex.has_context():
+            popover_text = _("Invalid input: {0}").format(regex.get_context())
+        else:
+            popover_text = _("Input does not match required pattern.")
+
+        self.popover = Gtk.Popover(
+            position=Gtk.PositionType.BOTTOM,
+            autohide=False
+        )
+        self.popover.set_parent(self.entry_row)
+        self.popover.set_child(
+            Gtk.Label(
+                label=popover_text,
+                css_classes=["error"],
+                margin_top=5, margin_bottom=5, margin_start=5, margin_end=5
+            )
+        )
+
+        self.connect("realize", self._on_realize)
+        self.connect("closed", self._on_close)
 
         self.entry_row.connect("entry-activated", self._on_activate)
+        self.entry_row.connect("changed", self._on_input_changed)
+
+        click_controller = Gtk.GestureSingle(propagation_phase=Gtk.PropagationPhase.CAPTURE)
+        click_controller.connect("begin", self._on_focus_changed)
+        self.add_controller(click_controller)
+
+        self.add_css_class("view")
 
     def focus_input(self) -> None:
-        self.entry_row.grab_focus()
+        self.entry_row.grab_focus_without_selecting()
 
-    # noinspection PyUnusedLocal
-    def _on_activate(self, entry_row: Adw.EntryRow) -> None:
-        self.emit("response", "ok")
+    def _on_realize(self, *_) -> None:
+        window = require_not_none(self.get_root())
+        focus_handler = window.connect("notify::is-active", self._on_focus_changed)
+        self.connect("unrealize", lambda *_: window.disconnect(focus_handler))
+
+    def _on_focus_changed(self, *_) -> None:
+        if self.popover.is_visible():
+            self.popover.popdown()
+
+    def _on_activate(self, *_) -> None:
+        self._on_submit()
+
+    def _on_input_changed(self, *_) -> None:
+        if self.input_invalid:
+            self.input_invalid = False
+            self.entry_row.remove_css_class("error")
+            self.popover.popdown()
+
+    def _on_submit(self, *_) -> None:
+        text = self.entry_row.get_text()
+
+        if self.regex is not None and not self.regex.match(text):
+            self.input_invalid = True
+            self.entry_row.add_css_class("error")
+            self.popover.popup()
+            return
+
+        self.had_response = True
+
         self.close()
+        self.callback(text)
 
-    def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        if response_id == "ok":
-            self.callback(self.entry_row.get_text())
+    def _on_close(self, *_) -> None:
+        if not self.had_response and self.cancel_func is not None:
+            self.cancel_func()
 
 
 class PasswordDialog(InputDialog):

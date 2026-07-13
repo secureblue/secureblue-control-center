@@ -7,7 +7,7 @@ import dataclasses
 from threading import Event
 from typing import Any, Callable
 from gi.repository import Adw, GLib
-from sbcc_framework import PresenterLock
+from sbcc_framework import PresenterLock, Regex
 from sbcc_framework.feature import CompiledFeature, BooleanResponse
 from sbcc_framework.presenter import Chooser, Presenter, ProgressBar
 from sbcc_gui.presenter.chooser import GUIChooser
@@ -79,13 +79,13 @@ class GUIPresenter(PresenterLock, Presenter):
 
         return result[0]
 
-    def _show_prompt_input(self, prompt_text: str) -> str:
-        return self.__show_prompt_str(InputDialog, prompt_text)
+    def _show_prompt_input(self, prompt_text: str, prompt_regex: Regex | None) -> str:
+        return self.__show_prompt_str(InputDialog, prompt_text, prompt_regex)
 
-    def _show_prompt_password(self, prompt_text: str) -> str:
-        return self.__show_prompt_str(PasswordDialog, prompt_text)
+    def _show_prompt_password(self, prompt_text: str, prompt_regex: Regex | None) -> str:
+        return self.__show_prompt_str(PasswordDialog, prompt_text, prompt_regex)
 
-    def __show_prompt_str(self, dialog_type: type[InputDialog], prompt_text: str) -> str:
+    def __show_prompt_str(self, dialog_type: type[InputDialog], prompt_text: str, prompt_regex: Regex | None) -> str:
         self.block()
 
         def show_dialog(text: str, _event: Event, _result: list[Any]) -> None:
@@ -97,8 +97,9 @@ class GUIPresenter(PresenterLock, Presenter):
                 _result[1] = False
                 _event.set()
 
-            dialog = dialog_type(heading=self.compiled.display_name, body=text, callback=apply, cancel_func=cancel)
-            dialog.choose(self.main_window.get_window())
+            dialog = dialog_type(heading=self.compiled.display_name, body=text, callback=apply, regex=prompt_regex,
+                                 cancel_func=cancel)
+            dialog.present(self.main_window.get_window())
             dialog.focus_input()
 
         result: list[Any] = ["", True]
