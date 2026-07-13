@@ -76,6 +76,9 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         self.set_content(splitview)
 
         self.stack = Adw.ViewStack()
+        self.stack.set_enable_transitions(True)
+        self.stack.set_transition_duration(150)
+
         self.toast_overlay.set_child(self.stack)
 
         # Home Page
