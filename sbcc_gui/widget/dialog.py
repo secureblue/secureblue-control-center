@@ -172,7 +172,7 @@ class ChooserDialog(BaseDialog):
 
         self.callback = callback
 
-        self.list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE)
+        self.list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE, css_classes=["boxed-list"])
         self.set_extra_child(self.list_box)
 
         self.add_response("submit", _("Confirm"))
