@@ -25,7 +25,7 @@ class PresenterLock:
     def unblock(self) -> None:
         self.__blocked = False
 
-    def cancel(self):
+    def cancel(self) -> None:
         raise RuntimeError("Cancelling is not implemented for this presenter")
 
 
