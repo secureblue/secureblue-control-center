@@ -26,7 +26,7 @@ class PresenterLock:
         self.__blocked = False
 
     def cancel(self) -> None:
-        raise RuntimeError("Cancelling is not implemented for this presenter")
+        raise NotImplementedError("Cancelling is not implemented for this presenter")
 
 
 class Regex:
