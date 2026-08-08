@@ -93,7 +93,8 @@ class MultiPreferenceRow(BlockableRow[Adw.ComboRow]):
 
 class UtilityRow(BlockableRow[Adw.ActionRow]):
     def __init__(self, *args, callback: Callable[[Self], None], **kwargs):
-        super().__init__(row=Adw.ActionRow(*args, **kwargs), signal_name="activated", callback=callback)
+        super().__init__(row=Adw.ActionRow(*args, **kwargs, focusable=False), signal_name="activated",
+                         callback=callback)
 
         button = Gtk.Button(
             label=_("Run"),
