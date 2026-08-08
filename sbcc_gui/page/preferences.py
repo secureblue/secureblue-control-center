@@ -40,7 +40,7 @@ class PreferencesPage(FeaturesPage):
 
             def disable_preference(reason: str) -> None:
                 row = _wrapper.get_row()
-                row.set_tooltip_text(reason)
+                row.set_tooltip_text(_("This preference is not available: {0}").format(reason))
                 row.set_activatable(False)
                 row.set_sensitive(False)
                 self.feature_loaded()

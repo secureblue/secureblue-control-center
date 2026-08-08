@@ -39,7 +39,7 @@ class UtilitiesPage(FeaturesPage):
     def set_initial_state(self, compiled: CompiledFeature[Utility], wrapper: UtilityRow) -> None:
         def disable_utility(reason: str) -> None:
             row = wrapper.get_row()
-            row.set_tooltip_text(reason)
+            row.set_tooltip_text(_("This utility is not available: {0}").format(reason))
             row.set_activatable(False)
             row.set_sensitive(False)
             self.feature_loaded()
