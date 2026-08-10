@@ -5,7 +5,7 @@
 import click
 
 from abc import abstractmethod
-from typing import List, Self
+from typing import Self, ClassVar
 from sbcc_framework.feature import CompiledFeature, Feature
 from sbcc_framework.presenter import Presenter
 
@@ -15,7 +15,7 @@ class Utility(Feature):
     A feature utility without any state that can be executed.
     """
 
-    REGISTRY: List[CompiledFeature[Self]] = []
+    REGISTRY: ClassVar[list[CompiledFeature[Self]]] = []
 
     @abstractmethod
     def run(self, presenter: Presenter) -> int | None:
@@ -24,7 +24,6 @@ class Utility(Feature):
         :param presenter: The presenter to interact with the user.
         :returns: The exit code to return when run in CLI mode, or `None`.
         """
-        pass
 
 
 class ComplexUtility(Feature):
@@ -33,7 +32,7 @@ class ComplexUtility(Feature):
     Only supported in CLI mode.
     """
 
-    REGISTRY: List[CompiledFeature[Self]] = []
+    REGISTRY: ClassVar[list[CompiledFeature[Self]]] = []
 
     @abstractmethod
     def register(self, presenter: Presenter) -> click.Command:
@@ -42,4 +41,3 @@ class ComplexUtility(Feature):
         :param presenter: The presenter to interact with the user.
         :return: The click command to register for this utility.
         """
-        pass

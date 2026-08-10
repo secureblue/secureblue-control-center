@@ -20,7 +20,7 @@ class Presenter(ABC):
         Must not be called while the presenter is blocked.
         :param text: The text to show.
         """
-        self._ensure_unblocked()
+        self.ensure_unblocked()
         self._show_text(text)
 
     @abstractmethod
@@ -33,7 +33,7 @@ class Presenter(ABC):
         Must not be called while the presenter is blocked.
         :param prompt_text: The prompt text to show.
         """
-        self._ensure_unblocked()
+        self.ensure_unblocked()
         self._show_prompt_text(prompt_text)
 
     @abstractmethod
@@ -53,9 +53,10 @@ class Presenter(ABC):
           or equivalent.
         :returns: The user choice.
         """
+        self.ensure_unblocked()
         if suggested is not BooleanResponse.NONE and suggested == destructive:
-            raise ValueError("Suggested and destructive responses cannot be the same.")
-        self._ensure_unblocked()
+            msg = "Suggested and destructive responses cannot be the same."
+            raise ValueError(msg)
         return self._show_prompt_boolean(prompt_text, default, suggested, destructive)
 
     @abstractmethod
@@ -71,7 +72,7 @@ class Presenter(ABC):
         :param prompt_regex: A regular expression that the input must match to be submitted.
         :returns: The user input.
         """
-        self._ensure_unblocked()
+        self.ensure_unblocked()
         return self._show_prompt_input(prompt_text, prompt_regex)
 
     @abstractmethod
@@ -86,7 +87,7 @@ class Presenter(ABC):
         :param prompt_regex: A regular expression that the password must match to be submitted.
         :returns: The user password input.
         """
-        self._ensure_unblocked()
+        self.ensure_unblocked()
         return self._show_prompt_password(prompt_text, prompt_regex)
 
     @abstractmethod
@@ -99,7 +100,6 @@ class Presenter(ABC):
         Creates a new progress bar.
         :returns: The new progress bar.
         """
-        pass
 
     @abstractmethod
     def create_chooser(self) -> Chooser:
@@ -107,7 +107,6 @@ class Presenter(ABC):
         Creates a new chooser.
         :returns: The new chooser.
         """
-        pass
 
     @abstractmethod
     def is_blocked(self) -> bool:
@@ -115,8 +114,10 @@ class Presenter(ABC):
         Retrieves whether this presenter is currently blocked.
         :return: Whether this presenter is blocked.
         """
-        pass
 
-    def _ensure_unblocked(self) -> None:
-        if self.is_blocked():
-            raise RuntimeError("Illegal call on blocked presenter")
+    @abstractmethod
+    def ensure_unblocked(self) -> None:
+        """
+        Ensures that this presenter is currently unblocked.
+        Throws an error if it is blocked.
+        """

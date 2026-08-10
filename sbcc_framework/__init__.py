@@ -25,8 +25,14 @@ class PresenterLock:
     def unblock(self) -> None:
         self.__blocked = False
 
+    def ensure_unblocked(self) -> None:
+        if self.is_blocked():
+            msg = "Illegal call on blocked presenter"
+            raise RuntimeError(msg)
+
     def cancel(self) -> None:
-        raise NotImplementedError("Cancelling is not implemented for this presenter")
+        msg = "Cancelling is not implemented for this presenter"
+        raise NotImplementedError(msg)
 
 
 class Regex:
@@ -60,7 +66,8 @@ class Regex:
         :returns: The context of this regular expression.
         """
         if self.__context is None:
-            raise RuntimeError("Regex has no context")
+            msg = "Regex has no context"
+            raise RuntimeError(msg)
         return self.__context
 
     def match(self, string: str) -> bool:

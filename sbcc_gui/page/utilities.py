@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Callable
 from threading import Thread
-from typing import Any, Callable, Final
+from typing import Any, Final
 from gi.repository import GLib
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.utility import Utility
@@ -11,12 +12,12 @@ from sbcc_gui.page import FeaturesPage
 from sbcc_gui.widget.row import UtilityRow
 from sbcc_util import gettext_marker
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class UtilitiesPage(FeaturesPage):
     def __init__(self, *args, **kwargs):
-        super().__init__(title=_("Utilities"), *args, **kwargs)
+        super().__init__(*args, **kwargs, title=_("Utilities"))
 
     def add_utility(self, compiled: CompiledFeature[Utility], callback: Callable[[UtilityRow], Any]) -> None:
         self.feature_loading()

@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# ruff: noqa: RET503
+
 """
 The CLI application
 """
@@ -9,8 +11,9 @@ The CLI application
 import dataclasses
 import click
 
+from collections.abc import Callable
 from dataclasses import field
-from typing import Final, Any
+from typing import Final, Any, override
 from click import Context, Group, pass_context, ParamType, Parameter
 from click.shell_completion import CompletionItem
 from sbcc_cli.presenter import CLIPresenter
@@ -19,7 +22,7 @@ from sbcc_framework.feature.preference import ComplexPreference, Preference, Mul
 from sbcc_framework.feature.utility import ComplexUtility, Utility
 from sbcc_util import gettext_marker, ANSI_BLUE, ANSI_RESET
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 def add_category(command: click.Group, categories: dict[str, Group], compiled: CompiledFeature) -> None:
@@ -45,21 +48,25 @@ class MultiPrefParamType(ParamType):
             self.options.update(self.preference.get_options())
         return self.options
 
+    @override
     def convert(self, value: Any, param: Parameter | None, ctx: Context | None) -> Any:
         if value in self.get_options():
             return value
         else:
-            self.fail(f"'{value}' is not one of " + ", ".join(f"'{k}'" for k in self.get_options().keys()) + ".",
+            self.fail(f"'{value}' is not one of " + ", ".join(f"'{k}'" for k in self.get_options()) + ".",
                       param, ctx)
 
+    @override
     def get_metavar(self, param: Parameter, ctx: Context) -> str | None:
         return "{" + "|".join(self.get_options().keys()) + "}"
 
+    @override
     def get_missing_message(self, param: Parameter, ctx: Context | None) -> str | None:
         return "Choose from:\n" + ",\n".join(f"\t{k} ({v})" for k, v in self.get_options().items())
 
+    @override
     def shell_complete(self, ctx: Context, param: Parameter, incomplete: str) -> list[CompletionItem]:
-        return [CompletionItem(value=opt) for opt in self.get_options().keys() if opt.startswith(incomplete)]
+        return [CompletionItem(value=opt) for opt in self.get_options() if opt.startswith(incomplete)]
 
 
 class SBCCApplicationCLI:
@@ -87,7 +94,7 @@ class SBCCApplicationCLI:
 
             @click.command(name="get", help=_("Prints the current state of this preference"))
             @pass_context
-            def getter(ctx: Context, *, __capture=compiled) -> None:
+            def getter(ctx: Context, *, __capture: CompiledFeature[Preference] = compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -102,7 +109,7 @@ class SBCCApplicationCLI:
             @click.command(name="set", help=_("Sets the state of this preference"))
             @click.argument("state", type=click.Choice(["on", "off"]))
             @pass_context
-            def setter(ctx: Context, state: str, *, __capture=compiled) -> None:
+            def setter(ctx: Context, state: str, *, __capture: CompiledFeature[Preference] = compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -110,7 +117,7 @@ class SBCCApplicationCLI:
                     ctx.exit(1)
 
                 old_state_bool = __capture.feature.get_state()
-                new_state_bool = True if state == "on" else False
+                new_state_bool = state == "on"
 
                 if old_state_bool == new_state_bool:
                     new_state_str = state_bool_to_str(new_state_bool)
@@ -141,7 +148,7 @@ class SBCCApplicationCLI:
 
             @click.command(name="get", help=_("Prints the current state of this preference"))
             @pass_context
-            def getter(ctx: Context, *, __capture=multi_compiled) -> None:
+            def getter(ctx: Context, *, __capture: CompiledFeature[MultiPreference] = multi_compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -156,7 +163,8 @@ class SBCCApplicationCLI:
             @click.command(name="set", help=_("Sets the state of this preference"))
             @click.argument("state", type=MultiPrefParamType(multi_compiled.feature))
             @pass_context
-            def setter(ctx: Context, state: str, *, __capture=multi_compiled) -> None:
+            def setter(ctx: Context, state: str, *,
+                       __capture: CompiledFeature[MultiPreference] = multi_compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The preference '{0}' is not available:").format(__capture.display_name))
@@ -211,7 +219,7 @@ class SBCCApplicationCLI:
 
             @click.command(name=compiled.name, help=compiled.description)
             @pass_context
-            def utility(ctx: Context, *, __capture=compiled) -> None:
+            def utility(ctx: Context, *, __capture: CompiledFeature[Utility] = compiled) -> None:
                 unavailable_context = __capture.feature.is_available()
                 if unavailable_context is not None:
                     print(_("The utility '{0}' is not available:").format(__capture.display_name))

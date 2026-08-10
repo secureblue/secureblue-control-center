@@ -2,11 +2,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Callable
 from typing import Final
 from gi.repository import Adw
 from sbcc_util import gettext_marker
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class HomePage(Adw.Bin):

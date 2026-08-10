@@ -6,6 +6,7 @@ import sys
 
 from threading import Thread
 from time import sleep
+from typing import override
 from sbcc_framework.presenter.progressbar import ProgressBar
 from sbcc_util import ANSI_CURSOR_UP, ANSI_CLEAR_LINE
 
@@ -23,9 +24,11 @@ class CLIProgressBar(ProgressBar):
     render_interval: float = 0.1
     width: int = 50
 
+    @override
     def _show(self) -> None:
         if self.active:
-            raise RuntimeError("ProgressBar is already active.")
+            msg = "Progressbar is already active"
+            raise RuntimeError(msg)
         self.active = True
 
         self._presenter.block()
@@ -37,9 +40,11 @@ class CLIProgressBar(ProgressBar):
         self.changed = False
         Thread(name="sbcc_cli:progressbar", target=self._tick, daemon=True).start()
 
+    @override
     def close(self) -> None:
         if not self.active:
-            raise RuntimeError("ProgressBar is not active.")
+            msg = "Progressbar is not active"
+            raise RuntimeError(msg)
         self.active = False
 
         sys.stdout.write(ANSI_CURSOR_UP)
@@ -50,36 +55,46 @@ class CLIProgressBar(ProgressBar):
         sys.stdout.write(ANSI_CURSOR_UP)
         self._presenter.unblock()
 
+    @override
     def is_active(self) -> bool:
         return self.active
 
+    @override
     def get_progress(self) -> float:
         return self.progress
 
+    @override
     def set_progress(self, value: float) -> None:
         self.progress = min(value, 1)
         self.pulse = False
         self.changed = True
 
+    @override
     def add_progress(self, value: float) -> None:
         self.set_progress(self.get_progress() + value)
 
+    @override
     def get_context(self) -> str:
         return self.context if self.context is not None else ""
 
+    @override
     def set_context(self, context: str) -> None:
         self.context = context if context != "" else None
 
+    @override
     def get_pulse(self) -> bool:
         return self.pulse
 
+    @override
     def set_pulse(self, mode: bool) -> None:
         self.pulse = mode
         self.changed = True
 
+    @override
     def get_show_percentage(self) -> bool:
         return self.show_percentage
 
+    @override
     def set_show_percentage(self, value: bool) -> None:
         self.show_percentage = value
         self.changed = True
@@ -145,7 +160,8 @@ class CLIProgressBar(ProgressBar):
 
     def _print_context(self) -> None:
         if self.context is None:
-            raise ValueError("Context is None.")
+            msg = "Context is None"
+            raise ValueError(msg)
         length = len(self.context)
         if self.context[-3:] == "...":
             # Context ending in "..." looks better if slightly centered more to the right,

@@ -2,21 +2,21 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from abc import abstractmethod
-from typing import Any, Callable, Final
+from collections.abc import Callable
+from typing import Any, Final, cast, override
 from gi.repository import Gtk, Adw
 from sbcc_framework import Regex
 from sbcc_framework.feature import BooleanResponse
 from sbcc_util import gettext_marker, require_not_none
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class BaseDialog(Adw.AlertDialog):
-    cancel_func: Callable[..., Any] | None
+    cancel_func: Callable[[], Any] | None
     had_response: bool = False
 
-    def __init__(self, cancel_func: Callable[..., Any] | None = None, *args, **kwargs):
+    def __init__(self, cancel_func: Callable[[], Any] | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.cancel_func = cancel_func
@@ -25,12 +25,11 @@ class BaseDialog(Adw.AlertDialog):
 
         self.add_css_class("view")
 
-    @abstractmethod
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        pass
+        raise NotImplementedError
 
     def _on_response_internal(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        if not self.had_response and response_id == "close" and self.cancel_func is not None:
+        if self.cancel_func is not None and response_id == "close" and not self.had_response:
             self.cancel_func()
             return
         self.had_response = True
@@ -38,9 +37,9 @@ class BaseDialog(Adw.AlertDialog):
 
 
 class TextDialog(BaseDialog):
-    callback: Callable[..., Any] | None
+    callback: Callable[[], Any] | None
 
-    def __init__(self, callback: Callable[..., Any] | None = None, *args, **kwargs):
+    def __init__(self, callback: Callable[[], Any] | None = None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.callback = callback
@@ -48,6 +47,7 @@ class TextDialog(BaseDialog):
         self.add_response("ok", _("Ok"))
         self.set_response_appearance("ok", Adw.ResponseAppearance.SUGGESTED)
 
+    @override
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if self.callback is not None and response_id == "ok":
             self.callback()
@@ -76,6 +76,7 @@ class BooleanDialog(BaseDialog):
 
         self.set_prefer_wide_layout(True)
 
+    @override
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if response_id in ["yes", "no"]:
             self.callback(response_id == "yes")
@@ -176,6 +177,7 @@ class InputDialog(Adw.Dialog):
             self.entry_row.remove_css_class("error")
             self.popover.popdown()
 
+    @override
     def _on_submit(self, *_) -> None:
         text = self.entry_row.get_text()
 
@@ -197,7 +199,7 @@ class InputDialog(Adw.Dialog):
 
 class PasswordDialog(InputDialog):
     def __init__(self, *args, **kwargs):
-        super().__init__(entry_row=Adw.PasswordEntryRow(title=_("Enter password")), *args, **kwargs)
+        super().__init__(*args, **kwargs, entry_row=Adw.PasswordEntryRow(title=_("Enter password")))
 
 
 class ProgressDialog(BaseDialog):
@@ -224,9 +226,11 @@ class ProgressDialog(BaseDialog):
 
         self.set_can_close(False)
 
-    def set_body(self, body) -> None:
+    @override
+    def set_body(self, body: str) -> None:
         self.body.set_text(body)
 
+    @override
     def close(self) -> None:
         self.force_close()
 
@@ -243,6 +247,7 @@ class ProgressDialog(BaseDialog):
         else:
             self.body.set_margin_bottom(30)
 
+    @override
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         pass
 
@@ -263,7 +268,7 @@ class ChooserDialog(BaseDialog):
         self.add_response("submit", _("Confirm"))
         self.set_response_appearance("submit", Adw.ResponseAppearance.SUGGESTED)
 
-        self.options = dict()
+        self.options = {}
 
     def add_option(self, key: str, value: str) -> None:
         row = Adw.ButtonRow(
@@ -304,9 +309,9 @@ class ChooserDialog(BaseDialog):
 
 
 class FatalErrorDialog(BaseDialog):
-    callback: Callable[..., Any] | None
+    callback: Callable[[], Any] | None
 
-    def __init__(self, callback: Callable[..., Any] | None = None):
+    def __init__(self, callback: Callable[[], Any] | None = None):
         super().__init__(
             heading=_("Fatal Error"),
             body=_("A fatal error has occurred.\nSee logs for additional information.\n\nThe application will exit.")
@@ -317,6 +322,7 @@ class FatalErrorDialog(BaseDialog):
         self.add_response("exit", _("Close Application"))
         self.set_response_appearance("exit", Adw.ResponseAppearance.DESTRUCTIVE)
 
+    @override
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
         if self.callback is not None:
             self.callback()

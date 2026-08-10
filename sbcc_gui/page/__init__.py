@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Callable
 from typing import Final
 from gi.repository import Adw, Gtk, GLib
 from sbcc_framework.feature import Category
 from sbcc_gui.window import Toastable
 from sbcc_util import gettext_marker
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class LoadingPage(Adw.Bin):
@@ -58,7 +59,7 @@ class FeaturesPage(Adw.Bin):
 
         self.main_window = main_window
         self.stack = Adw.ViewStack()
-        self.page = Adw.PreferencesPage(title=title, *args, **kwargs)
+        self.page = Adw.PreferencesPage(*args, **kwargs, title=title)
         self.categories = {}
 
         self.stack.add_named(LoadingPage(label=_("Loading {0}...").format(title)), "loading")

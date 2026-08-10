@@ -2,11 +2,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import Callable, Final, Self, cast
+from collections.abc import Callable
+from typing import Final, Self, cast, Any
 from gi.repository import Gtk, Adw, GObject, Gio
 from sbcc_util import gettext_marker
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class SidebarRow(Gtk.ListBoxRow):
@@ -27,7 +28,8 @@ class BlockableRow[T]:
 
     def __init__(self, row: T, signal_name: str, callback: Callable[[Self], None]):
         if not isinstance(row, Adw.PreferencesRow):
-            raise TypeError("Row is not an Adw.PreferencesRow")
+            msg = "Row is not an Adw.PreferencesRow"
+            raise TypeError(msg)
 
         self.row = row
         self.callback = callback
@@ -42,8 +44,7 @@ class BlockableRow[T]:
     def unblock_handler(self) -> None:
         self.row.handler_unblock(self.handler_id)
 
-    # noinspection PyUnusedLocal
-    def _on_change(self, *args) -> None:
+    def _on_change(self, *_: Any) -> None:
         self.callback(self)
 
 
@@ -78,7 +79,8 @@ class MultiPreferenceRow(BlockableRow[Adw.ComboRow]):
             if cast(MultiPreferenceRow.LabeledKey, self.store.get_item(i)).key == key:
                 self.get_row().set_selected(i)
                 return
-        raise ValueError(f"Row has no option with key {key}")
+        msg = f"Row has no option with key {key}"
+        raise ValueError(msg)
 
     class LabeledKey(GObject.Object):
         key = GObject.Property(type=str)

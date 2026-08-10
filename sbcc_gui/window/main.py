@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Callable
 from threading import Event, Thread
-from typing import Final
+from typing import Final, Any, override
 from gi.repository import Adw, GLib, Gio, Gtk
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import Preference, MultiPreference
@@ -19,7 +20,7 @@ from sbcc_gui.window import Toastable
 from sbcc_util import UserCancelFeatureException, gettext_marker, SBCC_VERSION, SBCC_ISSUES_PAGE, SBCC_WEBSITE, \
     SBCC_APPLICATION_ID, require_not_none
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class MainWindow(Adw.ApplicationWindow, Toastable):
@@ -45,17 +46,17 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             developers=["pxlkng"],
             version=SBCC_VERSION,
             website=SBCC_WEBSITE,
-            issue_url=SBCC_ISSUES_PAGE,
+            issue_url=SBCC_ISSUES_PAGE
         )
 
         menu = Gio.Menu().new()
         about_action = Gio.SimpleAction.new("about")
-        about_action.connect("activate", self.show_about)
+        about_action.connect("activate", lambda *_: self.show_about())
         self.add_action(about_action)
         menu.append(_("About"), "win.about")
 
         pref_changed_action = Gio.SimpleAction.new("pref_changed_dialog")
-        pref_changed_action.connect("activate", self.__preference_changed_dialog)
+        pref_changed_action.connect("activate", lambda *_: self.__preference_changed_dialog())
         self.add_action(pref_changed_action)
 
         toolbar_view = Adw.ToolbarView()
@@ -104,6 +105,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             lambda: self.stack.set_visible_child_name("utilities")
         )
 
+    @override
     def show_toast(self, toast: Adw.Toast) -> None:
         self.toast_overlay.add_toast(toast)
 
@@ -137,8 +139,8 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                     event.wait()
                     GLib.idle_add(apply_result, _result[0])
 
-                    raise UserCancelFeatureException(f"User cancelled preference {compiled.name},"
-                                                     f" reset to {_result[0]}")
+                    msg = f"User cancelled preference {compiled}, reset to {_result[0]}"
+                    raise UserCancelFeatureException(msg)
 
                 try:
                     current_state = compiled.feature.get_state()
@@ -191,8 +193,8 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
                     event.wait()
                     GLib.idle_add(apply_result, _result[0])
 
-                    raise UserCancelFeatureException(f"User cancelled preference {compiled.name},"
-                                                     f" reset to {_result[0]}")
+                    msg = f"User cancelled preference {compiled}, reset to {_result[0]}"
+                    raise UserCancelFeatureException(msg)
 
                 try:
                     current_state = compiled.feature.get_state()
@@ -225,8 +227,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         self.sidebar.set_sensitive(True)
         self.stack.set_sensitive(True)
 
-    # noinspection PyUnusedLocal
-    def __preference_changed_dialog(self, *args) -> None:
+    def __preference_changed_dialog(self) -> None:
         dialog = TextDialog(
             heading=_("Information"),
             body=_("This preference was changed by an external process while the application was open. "
@@ -235,7 +236,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         dialog.choose(self)
 
     def add_utility(self, compiled: CompiledFeature[Utility]) -> None:
-        def on_run(_) -> None:
+        def on_run(_: Any) -> None:
             self.sidebar.set_sensitive(False)
             self.stack.set_sensitive(False)
 
@@ -246,7 +247,9 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
                 def cancel_func() -> None:
                     unblock_ui()
-                    raise UserCancelFeatureException(f"User cancelled utility {compiled.name}")
+
+                    msg = f"User cancelled utility {compiled}"
+                    raise UserCancelFeatureException(msg)
 
                 try:
                     compiled.feature.run(GUIPresenter(self, compiled, cancel_func))
@@ -262,10 +265,10 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         self.utilities_page.add_utility(compiled, on_run)
 
-    # noinspection PyUnusedLocal
-    def show_about(self, *args) -> None:
+    def show_about(self) -> None:
         self.about.present(self)
 
+    @override
     def show_error_and_exit(self, feature: CompiledFeature, e: Exception) -> None:
         def show_error() -> None:
             dialog = FatalErrorDialog(callback=lambda: require_not_none(self.get_application()).quit())
@@ -273,4 +276,5 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         GLib.idle_add(show_error)
 
-        raise RuntimeError(f"Uncaught exception in feature {feature}", e)
+        msg = f"Uncaught exception in feature {feature}"
+        raise RuntimeError(msg, e)

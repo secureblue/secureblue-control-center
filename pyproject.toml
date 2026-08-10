@@ -8,3 +8,51 @@ dependencies = [
     "pygobject>=3.56.2",
     "pygobject-stubs>=2.17.0",
 ]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "ANN", # flake8-annotations
+    "S", # flake8-bandit
+    "B", # flake8-bugbear
+    "A", # flake8-builtins
+    "C4", # flake8-comprehensions
+    "FIX", # flake8-fíxme
+    "ICN", # flake8-import-conventions
+    "PIE", # flake8-pie
+    "Q", # flake8-quotes
+    "RSE", # flake8-raise
+    "RET", # flake8-return
+    "SLF", # flake8-self
+    "SIM", # flake8-simplify
+    "TC", # flake8-type-checking
+    "ARG", # flake8-unused-arguments
+    "I", # isort
+    "C90", # mccabe
+    "N", # pep8-naming
+    "E", # pycodestyle error
+    "W", # pycodestyle warning
+    "F", # pyflakes
+    "PL", # pylint
+    "UP", # pyupgrade
+    "FURB", # refurb
+    "RUF", # Ruff-specific rules
+    "EM101", # raw-string-in-exception
+]
+
+ignore = [
+    "ANN002", # missing-type-args
+    "ANN003", # missing-type-kwargs
+    "ANN204", # missing-return-type-special-method
+    "ANN401", # any-type
+    "S603", # subprocess-without-shell-equals-true
+    "I001", # unsorted-imports
+    "TC006", # runtime-cast-value
+    "RET505", # superfluous-else-return
+    "RET508", # superfluous-else-break
+]
+
+pycodestyle.max-line-length = 120
+pycodestyle.max-doc-length = 120

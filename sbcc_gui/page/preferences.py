@@ -2,8 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from collections.abc import Callable
 from threading import Thread
-from typing import Any, Callable, Final
+from typing import Any, Final
 from gi.repository import GLib
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import Preference, MultiPreference
@@ -11,12 +12,12 @@ from sbcc_gui.page import FeaturesPage
 from sbcc_gui.widget.row import PreferenceRow, MultiPreferenceRow
 from sbcc_util import gettext_marker
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class PreferencesPage(FeaturesPage):
     def __init__(self, *args, **kwargs):
-        super().__init__(title=_("Preferences"), *args, **kwargs)
+        super().__init__(*args, **kwargs, title=_("Preferences"))
 
     def add_preference(self, compiled: CompiledFeature[Preference], callback: Callable[[PreferenceRow], Any]) -> None:
         self.feature_loading()

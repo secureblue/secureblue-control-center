@@ -12,14 +12,15 @@ import gi
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 
+from collections.abc import Callable
+from typing import Final, override
 from gi.repository import Adw, GLib
-from typing import Final
 from sbcc_framework.feature.utility import Utility
 from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_gui.window.main import MainWindow
 from sbcc_util import gettext_marker, SBCC_APPLICATION_ID
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class SBCCApplicationGUI(Adw.Application):
@@ -29,6 +30,7 @@ class SBCCApplicationGUI(Adw.Application):
         super().__init__(application_id=SBCC_APPLICATION_ID)
         GLib.set_application_name("secureblue Control Center")
 
+    @override
     def do_activate(self) -> None:
         win = self.props.active_window
         if not win:

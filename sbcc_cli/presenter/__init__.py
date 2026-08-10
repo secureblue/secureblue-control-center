@@ -5,7 +5,8 @@
 import getpass
 import sys
 
-from typing import Final, Callable
+from collections.abc import Callable
+from typing import Final, override
 from sbcc_cli.presenter.chooser import CLIChooser
 from sbcc_cli.presenter.progressbar import CLIProgressBar
 from sbcc_framework import PresenterLock, Regex
@@ -16,7 +17,7 @@ from sbcc_framework.presenter.progressbar import ProgressBar
 from sbcc_util import gettext_marker, interruptible_ask, ANSI_BLUE, ANSI_RED, ANSI_RESET, ANSI_REMEMBER_CURSOR, \
     ANSI_RESTORE_CURSOR
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 def _prompt_until_valid(prompt_func: Callable[[str], str], prompt_text: str, prompt_regex: Regex | None) -> str:
@@ -25,28 +26,29 @@ def _prompt_until_valid(prompt_func: Callable[[str], str], prompt_text: str, pro
         if prompt_regex is None or prompt_regex.match(choice):
             break
         else:
+            sys.stdout.write(ANSI_RED)
             print(
-                ANSI_RED +
-                (
-                    _("Input does not match required pattern.")
-                    if prompt_regex is None or not prompt_regex.has_context()
-                    else _("Invalid input: {0}").format(prompt_regex.get_context())
-                )
-                + ANSI_RESET
+                _("Input does not match required pattern.")
+                if prompt_regex is None or not prompt_regex.has_context()
+                else _("Invalid input: {0}").format(prompt_regex.get_context())
             )
+            sys.stdout.write(ANSI_RESET)
     return choice
 
 
 class CLIPresenter(PresenterLock, Presenter):
+    @override
     def _show_text(self, text: str) -> None:
         print(text)
 
+    @override
     def _show_prompt_text(self, prompt_text: str) -> None:
         self.block()
         print(prompt_text)
         getpass.getpass(_("Press enter to continue..."))
         self.unblock()
 
+    @override
     def _show_prompt_boolean(self, prompt_text: str, default: BooleanResponse, suggested: BooleanResponse,
                              destructive: BooleanResponse) -> bool:
         self.block()
@@ -80,20 +82,24 @@ class CLIPresenter(PresenterLock, Presenter):
             else:
                 print(_("Invalid input. Please enter y or n."))
 
+    @override
     def _show_prompt_input(self, prompt_text: str, prompt_regex: Regex | None) -> str:
         self.block()
         choice = _prompt_until_valid(interruptible_ask, prompt_text, prompt_regex)
         self.unblock()
         return choice
 
+    @override
     def _show_prompt_password(self, prompt_text: str, prompt_regex: Regex | None) -> str:
         self.block()
         password = _prompt_until_valid(getpass.getpass, prompt_text, prompt_regex)
         self.unblock()
         return password
 
+    @override
     def create_progress_bar(self) -> ProgressBar:
         return CLIProgressBar(self)
 
+    @override
     def create_chooser(self) -> Chooser:
         return CLIChooser(self)

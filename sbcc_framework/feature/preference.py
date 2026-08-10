@@ -5,7 +5,7 @@
 import click
 
 from abc import abstractmethod
-from typing import List, Self
+from typing import Self, ClassVar
 from sbcc_framework.feature import CompiledFeature, Feature
 from sbcc_framework.presenter import Presenter
 
@@ -15,7 +15,7 @@ class Preference(Feature):
     A feature preference with two states, enabled and disabled.
     """
 
-    REGISTRY: List[CompiledFeature[Self]] = []
+    REGISTRY: ClassVar[list[CompiledFeature[Self]]] = []
 
     @abstractmethod
     def get_state(self) -> bool:
@@ -23,7 +23,6 @@ class Preference(Feature):
         Invoked when the current state of this preference is requested.
         :returns: The current state.
         """
-        pass
 
     @abstractmethod
     def set_state(self, presenter: Presenter, state: bool) -> bool:
@@ -33,7 +32,6 @@ class Preference(Feature):
         :param state: The requested new state.
         :returns: The resulting state.
         """
-        pass
 
 
 class MultiPreference(Feature):
@@ -41,7 +39,7 @@ class MultiPreference(Feature):
     A feature preference with an arbitrary amount of states.
     """
 
-    REGISTRY: List[CompiledFeature[Self]] = []
+    REGISTRY: ClassVar[list[CompiledFeature[Self]]] = []
 
     @abstractmethod
     def get_options(self) -> dict[str, str]:
@@ -50,7 +48,6 @@ class MultiPreference(Feature):
         display names to those states.
         :returns: A dictionary mapping each valid state to its display name.
         """
-        pass
 
     @abstractmethod
     def get_state(self) -> str:
@@ -58,7 +55,6 @@ class MultiPreference(Feature):
         Invoked when the current state of this preference is requested.
         :returns: The current state.
         """
-        pass
 
     @abstractmethod
     def set_state(self, presenter: Presenter, state: str) -> str:
@@ -68,7 +64,6 @@ class MultiPreference(Feature):
         :param state: The requested new state.
         :returns: The resulting state.
         """
-        pass
 
 
 class ComplexPreference(Feature):
@@ -77,7 +72,7 @@ class ComplexPreference(Feature):
     Only supported in CLI mode.
     """
 
-    REGISTRY: List[CompiledFeature[Self]] = []
+    REGISTRY: ClassVar[list[CompiledFeature[Self]]] = []
 
     @abstractmethod
     def register_getter(self, presenter: Presenter) -> click.Command:
@@ -87,7 +82,6 @@ class ComplexPreference(Feature):
         :param presenter: The presenter to interact with the user.
         :returns: The click command to register for this preference's getter.
         """
-        pass
 
     @abstractmethod
     def register_setter(self, presenter: Presenter) -> click.Command:
@@ -97,4 +91,3 @@ class ComplexPreference(Feature):
         :param presenter: The presenter to interact with the user.
         :returns: The click command to register for this preference's setter.
         """
-        pass

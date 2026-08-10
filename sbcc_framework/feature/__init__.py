@@ -5,11 +5,12 @@
 import dataclasses
 
 from abc import ABC
+from collections.abc import Callable
 from enum import Enum, auto
-from typing import Callable, Final, List
+from typing import Final
 from sbcc_util import gettext_marker, has_gui
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 class Frontend(Enum):
@@ -64,7 +65,7 @@ class Category:
     """The priority of this category. Higher number means higher priority."""
 
 
-DEFAULT_CATEGORY: Final = Category(
+DEFAULT_CATEGORY: Final[Category] = Category(
     name="other",
     display_name=_("Uncategorized"),
     description=_("Uncategorized features"),
@@ -73,6 +74,7 @@ DEFAULT_CATEGORY: Final = Category(
 """The global default category."""
 
 
+# ruff: ignore[B024]
 class Feature(ABC):
     """
     Abstract base class for all features.
@@ -107,44 +109,42 @@ class CompiledFeature[T]:
         Retrieves whether this feature supports CLI frontend.
         :return: Whether this feature supports CLI frontend.
         """
-        return self.frontend == Frontend.ANY or self.frontend == Frontend.CLI
+        return self.frontend in (Frontend.ANY, Frontend.CLI)
 
     def supports_gui(self) -> bool:
         """
         Retrieves whether this feature supports GUI frontend.
         :return: Whether this feature supports GUI frontend.
         """
-        return self.frontend == Frontend.ANY or self.frontend == Frontend.GUI
+        return self.frontend in (Frontend.ANY, Frontend.GUI)
 
     def supports_server(self) -> bool:
         """
         Retrieves whether this feature supports server environment.
         :return: Whether this feature supports server environment.
         """
-        return self.environment == Environment.ANY or self.environment == Environment.SERVER
+        return self.environment in (Environment.ANY, Environment.SERVER)
 
     def supports_desktop(self) -> bool:
         """
         Retrieves whether this feature supports desktop environment.
         :return: Whether this feature supports desktop environment.
         """
-        return self.environment == Environment.ANY or self.environment == Environment.DESKTOP
+        return self.environment in (Environment.ANY, Environment.DESKTOP)
 
     def supports_environment(self) -> bool:
         """
         Retrieves whether this feature supports the current environment.
         :return: Whether this feature supports the current environment.
         """
-        if has_gui():
-            return self.supports_desktop()
-        else:
-            return self.supports_server()
+        return self.supports_desktop() if has_gui() else self.supports_server()
 
 
-def feature(
-        name: str, display_name: str, description: str, category: Category = DEFAULT_CATEGORY,
-        frontend: Frontend = Frontend.ANY, environment: Environment = Environment.ANY
-) -> Callable[[type[Feature]], type[Feature]]:
+# ruff: ignore[PLR0913]
+def feature(*,
+            name: str, display_name: str, description: str, category: Category = DEFAULT_CATEGORY,
+            frontend: Frontend = Frontend.ANY, environment: Environment = Environment.ANY
+            ) -> Callable[[type[Feature]], type[Feature]]:
     """
     Compiles and registers a feature with metadata.
     :param name: The name of the feature.
@@ -157,7 +157,8 @@ def feature(
 
     def _compile(_feature: type[Feature]) -> type[Feature]:
         if not issubclass(_feature, Feature):
-            raise TypeError("Feature {name} must inherit from class Feature")
+            msg = f"Feature {name} must inherit from class Feature"
+            raise TypeError(msg)
 
         compiled = CompiledFeature(
             name=name,
@@ -170,9 +171,10 @@ def feature(
         )
 
         cls = compiled.feature.__class__.__mro__[1]
-        registry: List[CompiledFeature] | None = getattr(cls, "REGISTRY", None)
+        registry: list[CompiledFeature] | None = getattr(cls, "REGISTRY", None)
         if registry is None:
-            raise AttributeError(f"Feature class '{cls.__name__}' has no registry")
+            msg = f"Feature class '{cls.__name__}' has no registry"
+            raise AttributeError(msg)
         registry.append(compiled)
 
         return _feature

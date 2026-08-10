@@ -4,6 +4,7 @@
 
 from threading import Event, Thread
 from time import sleep
+from typing import override
 from gi.repository import GLib
 from sbcc_framework import PresenterLock
 from sbcc_framework.feature import CompiledFeature
@@ -37,9 +38,11 @@ class GUIProgressBar(ProgressBar):
         GLib.idle_add(construct_dialog, event)
         event.wait()
 
+    @override
     def _show(self) -> None:
         if self.active:
-            raise RuntimeError("ProgressBar is already active")
+            msg = "Progressbar is already active"
+            raise RuntimeError(msg)
         self.active = True
 
         self._presenter.block()
@@ -52,9 +55,11 @@ class GUIProgressBar(ProgressBar):
         GLib.idle_add(do_show, event)
         event.wait()
 
+    @override
     def close(self) -> None:
         if not self.active:
-            raise RuntimeError("ProgressBar is not active")
+            msg = "Progressbar is not active"
+            raise RuntimeError(msg)
         self.active = False
 
         def do_close(_event: Event) -> None:
@@ -66,30 +71,38 @@ class GUIProgressBar(ProgressBar):
         GLib.idle_add(do_close, event)
         event.wait()
 
+    @override
     def is_active(self) -> bool:
         return self.active
 
+    @override
     def get_progress(self) -> float:
         return self.progress
 
+    @override
     def set_progress(self, value: float) -> None:
         self.pulse = False
         self.progress = min(value, 1)
         GLib.idle_add(lambda: self.dialog.get_progress_bar().set_fraction(self.progress))
 
+    @override
     def add_progress(self, value: float) -> None:
         self.set_progress(self.get_progress() + value)
 
+    @override
     def get_context(self) -> str:
         return self.context
 
+    @override
     def set_context(self, context: str) -> None:
         self.context = context
         GLib.idle_add(lambda: self.dialog.set_body(self.context))
 
+    @override
     def get_pulse(self) -> bool:
         return self.pulse
 
+    @override
     def set_pulse(self, mode: bool) -> None:
         if mode == self.pulse:
             return
@@ -111,9 +124,11 @@ class GUIProgressBar(ProgressBar):
         if self.show_percentage:
             self._set_show_percentage(True)
 
+    @override
     def get_show_percentage(self) -> bool:
         return self.show_percentage
 
+    @override
     def set_show_percentage(self, value: bool) -> None:
         self.show_percentage = value
         if not self.pulse:

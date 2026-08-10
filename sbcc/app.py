@@ -8,13 +8,14 @@ Main application entry point.
 
 import click
 
+from collections.abc import Callable
 from typing import Final
 from click import Context
 from sbcc.features import load_features
 from sbcc_cli.app import SBCCApplicationCLI
 from sbcc_util import gettext_marker, has_gui, SBCC_VERSION
 
-_: Final = gettext_marker()
+_: Final[Callable[[str], str]] = gettext_marker()
 
 
 @click.group(
@@ -39,6 +40,7 @@ def launch(ctx: Context, gui: bool = False, version: bool = False) -> None:
 
     if gui:
         # Only attempt to load GUI if it is available
+        # ruff: ignore[PLC0415]
         from sbcc_gui.app import SBCCApplicationGUI
         SBCCApplicationGUI().run([])
         return

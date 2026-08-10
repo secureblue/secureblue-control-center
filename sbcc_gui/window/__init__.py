@@ -14,13 +14,14 @@ class Toastable:
 
     def __init__(self) -> None:
         if not isinstance(self, Adw.ApplicationWindow):
-            raise TypeError("Toastable is not an Adw.ApplicationWindow")
+            msg = "Toastable is not an Adw.ApplicationWindow"
+            raise TypeError(msg)
 
     def show_toast(self, toast: Adw.Toast) -> None:
-        raise RuntimeError("Not implemented")
+        raise NotImplementedError
 
     def get_window(self) -> Adw.ApplicationWindow:
         return cast(Adw.ApplicationWindow, cast(object, self))
 
     def show_error_and_exit(self, feature: CompiledFeature, e: Exception) -> None:
-        raise RuntimeError("Not implemented")
+        raise NotImplementedError

@@ -4,8 +4,9 @@
 
 import dataclasses
 
+from collections.abc import Callable
 from threading import Event
-from typing import Any, Callable
+from typing import Any, override
 from gi.repository import Adw, GLib
 from sbcc_framework import PresenterLock, Regex
 from sbcc_framework.feature import CompiledFeature, BooleanResponse
@@ -22,12 +23,14 @@ class GUIPresenter(PresenterLock, Presenter):
     compiled: CompiledFeature
     cancel_func: Callable[..., Any]
 
+    @override
     def _show_text(self, text: str) -> None:
         GLib.idle_add(lambda: self.main_window.show_toast(Adw.Toast(
             title=text,
             timeout=5
         )))
 
+    @override
     def _show_prompt_text(self, prompt_text: str) -> None:
         self.block()
 
@@ -36,7 +39,7 @@ class GUIPresenter(PresenterLock, Presenter):
                 _result[0] = False
                 _event.set()
 
-            dialog = TextDialog(heading=self.compiled.display_name, body=text, callback=lambda: _event.set(),
+            dialog = TextDialog(heading=self.compiled.display_name, body=text, callback=_event.set,
                                 cancel_func=cancel)
             dialog.choose(self.main_window.get_window())
 
@@ -50,6 +53,7 @@ class GUIPresenter(PresenterLock, Presenter):
 
         self.unblock()
 
+    @override
     def _show_prompt_boolean(self, prompt_text: str, default: BooleanResponse, suggested: BooleanResponse,
                              destructive: BooleanResponse) -> bool:
         self.block()
@@ -79,9 +83,11 @@ class GUIPresenter(PresenterLock, Presenter):
 
         return result[0]
 
+    @override
     def _show_prompt_input(self, prompt_text: str, prompt_regex: Regex | None) -> str:
         return self.__show_prompt_str(InputDialog, prompt_text, prompt_regex)
 
+    @override
     def _show_prompt_password(self, prompt_text: str, prompt_regex: Regex | None) -> str:
         return self.__show_prompt_str(PasswordDialog, prompt_text, prompt_regex)
 
@@ -114,11 +120,14 @@ class GUIPresenter(PresenterLock, Presenter):
 
         return result[0]
 
+    @override
     def create_progress_bar(self) -> ProgressBar:
         return GUIProgressBar(self, self.main_window, self.compiled)
 
+    @override
     def create_chooser(self) -> Chooser:
         return GUIChooser(self, self.main_window, self.compiled)
 
+    @override
     def cancel(self) -> None:
         self.cancel_func()
