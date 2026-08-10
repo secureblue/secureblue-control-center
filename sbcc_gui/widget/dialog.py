@@ -293,14 +293,14 @@ class ProgressDialog(BaseDialog):
 class ChooserDialog(BaseDialog):
     callback: Callable[[str], Any]
     list_box: Gtk.ListBox
-    options: dict[str, Adw.ButtonRow]
+    options: dict[str, Adw.ActionRow]
 
     def __init__(self, callback: Callable[[str], Any], *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.callback = callback
 
-        self.list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.SINGLE, css_classes=["boxed-list"])
+        self.list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
         self.set_extra_child(self.list_box)
 
         self.add_response("submit", _("Confirm"))
@@ -309,41 +309,142 @@ class ChooserDialog(BaseDialog):
         self.options = {}
 
     def add_option(self, key: str, value: str) -> None:
-        row = Adw.ButtonRow(
-                name=key,
-                child=Gtk.Label(
-                    label=value,
-                    xalign=0,
-                    margin_start=8,
-                    margin_top=5,
-                    margin_end=5,
-                    margin_bottom=5
-                )
-            )
-        row.connect("activate", self._on_activate)
+        btn = Gtk.CheckButton(can_focus=False)
+        row = Adw.ActionRow(
+            name=key,
+            title=value,
+            activatable_widget=btn
+        )
+        row.add_prefix(btn)
+
+        if len(self.options) > 0:
+            btn.set_group(cast(Gtk.CheckButton, next(iter(self.options.values())).get_activatable_widget()))
 
         self.list_box.append(row)
         self.options[key] = row
 
     def remove_option(self, key: str) -> None:
         if key not in self.options:
-            raise ValueError("No such key")
-        self.list_box.remove(self.options[key])
-        self.options.pop(key)
+            msg = f"No such key: {key}"
+            raise ValueError(msg)
+        self.list_box.remove(self.options.pop(key))
 
     def select_option(self, key: str) -> None:
         if key not in self.options:
-            raise ValueError("No such key")
-        self.list_box.select_row(self.options[key])
+            msg = f"No such key: {key}"
+            raise ValueError(msg)
+        self.options[key].activate()
 
-    # noinspection PyUnusedLocal
-    def _on_activate(self, row: Adw.ButtonRow) -> None:
-        self.emit("response", "submit")
-        self.close()
-
+    @override
     def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
-        if self.callback and response_id == "submit":
-            self.callback(require_not_none(self.list_box.get_selected_row()).get_name())
+        if response_id == "submit":
+            for key, row in self.options.items():
+                if cast(Gtk.CheckButton, row.get_activatable_widget()).get_active():
+                    self.callback(key)
+
+
+class MultiChooserDialog(ValidationDialog):
+    callback: Callable[[list[str]], Any]
+    min_choices: int
+    max_choices: int
+    incompatible_options: list[list[str]] | None
+    selected_options: list[str]
+    list_box: Gtk.ListBox
+    options: dict[str, Adw.ActionRow]
+
+    def __init__(self, callback: Callable[[list[str]], Any], min_choices: int = 0, max_choices: int = -1,
+                 incompatible_options: list[list[str]] | None = None, *args, **kwargs):
+        self.callback = callback
+        self.min_choices = min_choices
+        self.max_choices = max_choices
+        self.incompatible_options = incompatible_options
+        self.selected_options = []
+
+        self.list_box = Gtk.ListBox(selection_mode=Gtk.SelectionMode.NONE, css_classes=["boxed-list"])
+
+        super().__init__(*args, **kwargs, child=self.list_box)
+
+        self.options = {}
+
+    def add_option(self, key: str, value: str) -> None:
+        btn = Gtk.CheckButton(can_focus=False)
+        row = Adw.ActionRow(
+            name=key,
+            title=value,
+            activatable_widget=btn
+        )
+        row.add_prefix(btn)
+
+        btn.connect("toggled", self._on_toggle, row)
+
+        self.list_box.append(row)
+        self.options[key] = row
+
+    def remove_option(self, key: str) -> None:
+        if key not in self.options:
+            msg = f"No such key: {key}"
+            raise ValueError(msg)
+        self.list_box.remove(self.options.pop(key))
+
+    def select_option(self, key: str) -> None:
+        if key not in self.options:
+            msg = f"No such key: {key}"
+            raise ValueError(msg)
+        self.options[key].activate()
+
+    def _on_toggle(self, btn: Gtk.CheckButton, row: Adw.ActionRow) -> None:
+        if btn.get_active():
+            self.selected_options.append(row.get_name())
+        else:
+            self.selected_options.remove(row.get_name())
+
+        disabled_options: list[str] = []
+        if self.incompatible_options is not None:
+            for selected_option in self.selected_options:
+                for incompatible_options_sub in self.incompatible_options:
+                    if selected_option in incompatible_options_sub:
+                        disabled_options.extend(filter(lambda e: e != selected_option, incompatible_options_sub))
+
+        for key, _row in self.options.items():
+            disable_max = (self.max_choices != -1 and key not in self.selected_options
+                           and len(self.selected_options) == self.max_choices)
+
+            _row.set_sensitive(key not in disabled_options and not disable_max)
+
+            if disable_max:
+                _row.set_tooltip_text(_("You can't select more than {0} options.").format(self.max_choices))
+            elif key in disabled_options:
+                _row.set_tooltip_text(_("You can't select this option, as it is incompatible with the "
+                                        "following already selected option(s): {0}.")
+                                      .format(", ".join(f"'{self.options[e].get_title()}'"
+                                                        for e in self.__calculate_incompatible_causes(key))))
+            else:
+                _row.set_tooltip_text()
+
+    def __calculate_incompatible_causes(self, option: str) -> list[str]:
+        causes: list[str] = []
+
+        if self.incompatible_options is not None:
+            for incompatible_options_sub in self.incompatible_options:
+                if option in incompatible_options_sub:
+                    causes.extend(filter(lambda e: e in self.selected_options, incompatible_options_sub))
+
+        return causes
+
+    @override
+    def _on_submit(self, *__: Any) -> None:
+        if len(self.selected_options) < self.min_choices:
+            dialog = TextDialog(
+                heading=_("Invalid selection"),
+                body=_("You must select at least {0} option(s).").format(self.min_choices)
+            )
+            dialog.present(self)
+            return
+
+        self.had_response = True
+
+        self.callback(self.selected_options)
+        self.close()
 
 
 class FatalErrorDialog(BaseDialog):

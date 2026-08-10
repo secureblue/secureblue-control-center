@@ -59,6 +59,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/8c/be/bf49399ad2e788121f595903a56447d4b778d67acbb01ecfc1c6d5cf91f6/pygobject_stubs-2.17.0.tar.gz", hash = "sha256:66884d26974dd7fb99a8bc5972b5bdeb4b7399ecc7ac53913a6cafa6ab21491f", size = 1010510, upload-time = "2026-03-20T17:08:59.656Z" }
 
 [[package]]
+name = "readchar"
+version = "4.0.5"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "setuptools" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a1/57/439aaa28659e66265518232bf4291ae5568aa01cd9e0e0f6f8fe3b300e9e/readchar-4.0.5.tar.gz", hash = "sha256:08a456c2d7c1888cde3f4688b542621b676eb38cd6cfed7eb6cb2e2905ddc826", size = 9082, upload-time = "2023-03-17T08:19:29.049Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/cd/14/730280df294e52e395a70111f4d9b07be94f5ba7a69db7eba3c324f113b2/readchar-4.0.5-py3-none-any.whl", hash = "sha256:76ec784a5dd2afac3b7da8003329834cdd9824294c260027f8c8d2e4d0a78f43", size = 8513, upload-time = "2023-03-17T08:19:27.879Z" },
+]
+
+[[package]]
 name = "sbcc"
 version = "1.0.0"
 source = { virtual = "." }
@@ -66,6 +78,7 @@ dependencies = [
     { name = "click" },
     { name = "pygobject" },
     { name = "pygobject-stubs" },
+    { name = "readchar" },
 ]
 
 [package.metadata]
@@ -73,6 +86,16 @@ requires-dist = [
     { name = "click", specifier = "==8.3.3" },
     { name = "pygobject", specifier = ">=3.56.2" },
     { name = "pygobject-stubs", specifier = ">=2.17.0" },
+    { name = "readchar", specifier = "==4.0.5" },
+]
+
+[[package]]
+name = "setuptools"
+version = "83.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/34/26/f5d29e25ffdb535afef2d35cdb55b325298f96debd670da4c325e08d70f4/setuptools-83.0.0.tar.gz", hash = "sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef", size = 1154254, upload-time = "2026-07-04T15:31:22.699Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/5d/40/e1e72872c6354b306daef1703549e8e83b4d43cfea356311bf722a043752/setuptools-83.0.0-py3-none-any.whl", hash = "sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3", size = 1008090, upload-time = "2026-07-04T15:31:20.885Z" },
 ]
 
 [[package]]
