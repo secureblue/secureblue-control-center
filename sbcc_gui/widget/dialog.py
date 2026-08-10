@@ -36,6 +36,76 @@ class BaseDialog(Adw.AlertDialog):
         self._on_response(dialog, response_id)
 
 
+class ValidationDialog(Adw.Dialog):
+    cancel_func: Callable[[], Any] | None
+    had_response: bool = False
+
+    def __init__(self, heading: str, body: str, child: Gtk.Widget, cancel_func: Callable[[], Any] | None = None,
+                 *args, **kwargs):
+        super().__init__(*args, **kwargs, width_request=350)
+
+        self.cancel_func = cancel_func
+
+        outer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+
+        inner_box = Gtk.Box(
+            orientation=Gtk.Orientation.VERTICAL,
+            margin_top=30, margin_start=30, margin_end=30,
+            vexpand=True
+        )
+
+        inner_box.append(
+            Gtk.Label(
+                label=heading,
+                css_classes=["heading", "title-3"],
+                margin_bottom=10,
+                halign=Gtk.Align.CENTER,
+                justify=Gtk.Justification.CENTER
+            )
+        )
+        inner_box.append(
+            Gtk.Label(
+                label=body,
+                margin_bottom=20,
+                halign=Gtk.Align.CENTER,
+                justify=Gtk.Justification.CENTER
+            )
+        )
+
+        child.set_margin_bottom(10)
+        inner_box.append(child)
+
+        outer_box.append(Gtk.ScrolledWindow(
+            child=inner_box,
+            vexpand=True,
+            hscrollbar_policy=Gtk.PolicyType.NEVER,
+            propagate_natural_height=True,
+            propagate_natural_width=True
+        ))
+
+        button = Gtk.Button(
+            label=_("Submit"),
+            css_classes=["suggested-action"],
+            margin_top=10, margin_bottom=30, margin_start=30, margin_end=30
+        )
+        button.connect("clicked", self._on_submit)
+        outer_box.append(button)
+
+        self.set_child(outer_box)
+
+        self.connect("closed", self._on_close)
+
+        self.add_css_class("view")
+        self.set_presentation_mode(Adw.DialogPresentationMode.FLOATING)
+
+    def _on_submit(self, *_: Any) -> None:
+        raise NotImplementedError
+
+    def _on_close(self, *_: Any) -> None:
+        if self.cancel_func is not None and not self.had_response:
+            self.cancel_func()
+
+
 class TextDialog(BaseDialog):
     callback: Callable[[], Any] | None
 
@@ -82,49 +152,23 @@ class BooleanDialog(BaseDialog):
             self.callback(response_id == "yes")
 
 
-class InputDialog(Adw.Dialog):
+class InputDialog(ValidationDialog):
     callback: Callable[[str], Any]
     entry_row: Adw.EntryRow
     regex: Regex | None
-    cancel_func: Callable[..., Any] | None
     popover: Gtk.Popover
-    had_response: bool = False
     input_invalid: bool = False
 
-    def __init__(self, heading: str, body: str, callback: Callable[[str], Any], entry_row: Adw.EntryRow | None = None,
-                 regex: Regex | None = None, cancel_func: Callable[..., Any] | None = None, *args, **kwargs):
-        super().__init__(*args, **kwargs, width_request=350)
-
+    def __init__(self, callback: Callable[[str], Any], entry_row: Adw.EntryRow | None = None,
+                 regex: Regex | None = None, *args, **kwargs):
         self.callback = callback
         self.entry_row = Adw.EntryRow(title=_("Enter text")) if entry_row is None else entry_row
         self.regex = regex
-        self.cancel_func = cancel_func
 
-        box = Gtk.Box(
-            orientation=Gtk.Orientation.VERTICAL,
-            margin_top=30, margin_bottom=30, margin_start=30, margin_end=30
-        )
-
-        box.append(
-            Gtk.Label(
-                label=heading,
-                css_classes=["heading", "title-3"],
-                margin_bottom=10
-            )
-        )
-        box.append(
-            Gtk.Label(label=body, margin_bottom=20)
-        )
-
-        group = Adw.PreferencesGroup(margin_bottom=28)
+        group = Adw.PreferencesGroup()
         group.add(self.entry_row)
-        box.append(group)
 
-        button = Gtk.Button(label=_("Submit"), css_classes=["suggested-action"])
-        button.connect("clicked", self._on_submit)
-        box.append(button)
-
-        self.set_child(box)
+        super().__init__(*args, **kwargs, child=group)
 
         if regex is not None and regex.has_context():
             popover_text = _("Invalid input: {0}").format(regex.get_context())
@@ -153,8 +197,6 @@ class InputDialog(Adw.Dialog):
         click_controller = Gtk.GestureSingle(propagation_phase=Gtk.PropagationPhase.CAPTURE)
         click_controller.connect("begin", self._on_focus_changed)
         self.add_controller(click_controller)
-
-        self.add_css_class("view")
 
     def focus_input(self) -> None:
         self.entry_row.grab_focus_without_selecting()
@@ -191,10 +233,6 @@ class InputDialog(Adw.Dialog):
 
         self.close()
         self.callback(text)
-
-    def _on_close(self, *_) -> None:
-        if not self.had_response and self.cancel_func is not None:
-            self.cancel_func()
 
 
 class PasswordDialog(InputDialog):
