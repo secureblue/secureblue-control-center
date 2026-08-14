@@ -23,7 +23,7 @@ def _clear_lines(amount: int) -> None:
 
 def _print_err_prompt(message: str) -> None:
     sys.stdout.write(ANSI_RED)
-    print(message, end=" Press enter to continue. ")
+    print(message, end=_(" Press enter to continue. "))
     sys.stdout.write(ANSI_RESET)
     sys.stdout.flush()
     getpass("")
