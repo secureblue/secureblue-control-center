@@ -23,6 +23,7 @@ class GUIProgressBar(ProgressBar):
     context: str = ""
     pulse: bool = False
     show_percentage: bool = False
+    pulse_thread: Thread | None = None
 
     def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature):
         super().__init__(presenter)
@@ -54,6 +55,9 @@ class GUIProgressBar(ProgressBar):
         event = Event()
         GLib.idle_add(do_show, event)
         event.wait()
+
+        if self.pulse:
+            self.__start_pulse_thread()
 
     @override
     def close(self) -> None:
@@ -109,9 +113,14 @@ class GUIProgressBar(ProgressBar):
 
         self.pulse = mode
         if self.pulse:
-            Thread(name="sbcc_gui:progressbar", target=self.__tick_pulse, daemon=True).start()
+            if self.active:
+                self.__start_pulse_thread()
         else:
             self.set_progress(self.progress)
+
+    def __start_pulse_thread(self) -> None:
+        if self.pulse_thread is None or not self.pulse_thread.is_alive():
+            self.pulse_thread = Thread(name="sbcc_gui:progressbar", target=self.__tick_pulse, daemon=True).start()
 
     def __tick_pulse(self) -> None:
         if self.show_percentage:
