@@ -34,11 +34,11 @@ class CLIProgressBar(ProgressBar):
         self._presenter.block()
         print()
         if self.context is not None:
-            self._print_context()
+            self.__print_context()
             self.printed_header = True
-        self._print_bar()
+        self.__print_bar()
         self.changed = False
-        Thread(name="sbcc_cli:progressbar", target=self._tick, daemon=True).start()
+        Thread(name="sbcc_cli:progressbar", target=self.__tick, daemon=True).start()
 
     @override
     def close(self) -> None:
@@ -99,7 +99,7 @@ class CLIProgressBar(ProgressBar):
         self.show_percentage = value
         self.changed = True
 
-    def _tick(self) -> None:
+    def __tick(self) -> None:
         while self.active:
             if self.changed or self.pulse:
                 if self.printed_header:
@@ -110,18 +110,18 @@ class CLIProgressBar(ProgressBar):
 
                 if self.context is not None:
                     sys.stdout.write(ANSI_CLEAR_LINE)
-                    self._print_context()
+                    self.__print_context()
                     self.printed_header = True
                 else:
                     self.printed_header = False
 
                 sys.stdout.write(ANSI_CLEAR_LINE)
-                self._print_bar()
+                self.__print_bar()
 
                 self.changed = False
             sleep(self.render_interval)
 
-    def _print_bar(self) -> None:
+    def __print_bar(self) -> None:
         print("[", end="")
         if not self.pulse:
             fill = int(self.progress * (self.width - 2))
@@ -158,7 +158,7 @@ class CLIProgressBar(ProgressBar):
         else:
             print()
 
-    def _print_context(self) -> None:
+    def __print_context(self) -> None:
         if self.context is None:
             msg = "Context is None"
             raise ValueError(msg)
