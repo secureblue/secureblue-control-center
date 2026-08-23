@@ -80,6 +80,7 @@ class Chooser(ABC):
     def _choose(self, default: str | None) -> str:
         pass
 
+    # ruff: ignore[PLR0912, C901]
     def choose_multiple(self, default: list[str] | None = None, min_choices: int = 0, max_choices: int = -1,
                         incompatible_options: list[list[str]] | None = None) -> list[str]:
         """
