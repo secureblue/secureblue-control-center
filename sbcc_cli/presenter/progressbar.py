@@ -124,39 +124,45 @@ class CLIProgressBar(ProgressBar):
     def __print_bar(self) -> None:
         print("[", end="")
         if not self.pulse:
-            fill = int(self.progress * (self.width - 2))
-            for i in range(self.width - 2):
-                char: str
-                if i < fill:
-                    char = "="
-                elif i == fill:
-                    char = ">"
-                else:
-                    char = "."
-                print(char, end="")
+            self.__print_bar_progress()
         else:
-            draw_range = self.width - 2
-            for i in range(draw_range):
-                char: str
-                if i == self.pulse_pos:
-                    char = "<"
-                elif self.pulse_pos < i <= self.pulse_pos + 3:
-                    char = "="
-                elif i == self.pulse_pos + 4:
-                    char = ">"
-                else:
-                    char = "."
-                print(char, end="")
-            if ((self.pulse_dir == 1 and self.pulse_pos == draw_range - 5)
-                    or (self.pulse_dir == -1 and self.pulse_pos == 0)):
-                self.pulse_dir = -self.pulse_dir
-            self.pulse_pos += self.pulse_dir
+            self.__print_bar_pulse()
         print("]", end="")
 
         if self.show_percentage and not self.pulse:
             print(f" {(self.progress * 100):g}%")
         else:
             print()
+
+    def __print_bar_progress(self) -> None:
+        fill = int(self.progress * (self.width - 2))
+        for i in range(self.width - 2):
+            char: str
+            if i < fill:
+                char = "="
+            elif i == fill:
+                char = ">"
+            else:
+                char = "."
+            print(char, end="")
+
+    def __print_bar_pulse(self) -> None:
+        draw_range = self.width - 2
+        for i in range(draw_range):
+            char: str
+            if i == self.pulse_pos:
+                char = "<"
+            elif self.pulse_pos < i <= self.pulse_pos + 3:
+                char = "="
+            elif i == self.pulse_pos + 4:
+                char = ">"
+            else:
+                char = "."
+            print(char, end="")
+        if ((self.pulse_dir == 1 and self.pulse_pos == draw_range - 5)
+                or (self.pulse_dir == -1 and self.pulse_pos == 0)):
+            self.pulse_dir = -self.pulse_dir
+        self.pulse_pos += self.pulse_dir
 
     def __print_context(self) -> None:
         if self.context is None:
