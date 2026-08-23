@@ -21,6 +21,7 @@ class PreferencesPage(FeaturesPage):
 
     def add_preference(self, compiled: CompiledFeature[Preference], callback: Callable[[PreferenceRow], Any]) -> None:
         self.feature_loading()
+
         category_name = compiled.category.name
         if category_name not in self.categories:
             self.insert_category(compiled.category)
@@ -37,6 +38,7 @@ class PreferencesPage(FeaturesPage):
                 _wrapper.block_handler()
                 _wrapper.get_row().set_active(True)
                 _wrapper.unblock_handler()
+
                 self.feature_loaded()
 
             def disable_preference(reason: str) -> None:
@@ -44,6 +46,7 @@ class PreferencesPage(FeaturesPage):
                 row.set_tooltip_text(_("This preference is not available: {0}").format(reason))
                 row.set_activatable(False)
                 row.set_sensitive(False)
+
                 self.feature_loaded()
 
             try:
@@ -67,6 +70,7 @@ class PreferencesPage(FeaturesPage):
     def add_multi_preference(self, compiled: CompiledFeature[MultiPreference],
                              callback: Callable[[MultiPreferenceRow], Any]) -> None:
         self.feature_loading()
+
         category_name = compiled.category.name
         if category_name not in self.categories:
             self.insert_category(compiled.category)
@@ -84,6 +88,7 @@ class PreferencesPage(FeaturesPage):
                     _wrapper.add_option(key, value)
                 _wrapper.set_selected_option(_state)
                 _wrapper.ready()
+
                 self.feature_loaded()
 
             def disable_preference(reason: str) -> None:
@@ -91,6 +96,7 @@ class PreferencesPage(FeaturesPage):
                 row.set_tooltip_text(reason)
                 row.set_activatable(False)
                 row.set_sensitive(False)
+
                 self.feature_loaded()
 
             try:

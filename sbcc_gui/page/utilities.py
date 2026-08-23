@@ -21,6 +21,7 @@ class UtilitiesPage(FeaturesPage):
 
     def add_utility(self, compiled: CompiledFeature[Utility], callback: Callable[[UtilityRow], Any]) -> None:
         self.feature_loading()
+
         category_name = compiled.category.name
         if category_name not in self.categories:
             self.insert_category(compiled.category)
@@ -43,6 +44,7 @@ class UtilitiesPage(FeaturesPage):
             row.set_tooltip_text(_("This utility is not available: {0}").format(reason))
             row.set_activatable(False)
             row.set_sensitive(False)
+
             self.feature_loaded()
 
         try:
