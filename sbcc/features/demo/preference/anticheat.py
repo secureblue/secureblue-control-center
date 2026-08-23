@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from typing import override
 from sbcc.features.demo import CATEGORY_HARDENING_PREFS
 from sbcc_framework.feature import feature, Environment
 from sbcc_framework.feature.preference import Preference
@@ -16,9 +17,11 @@ from sbcc_framework.presenter import Presenter
     environment=Environment.DESKTOP
 )
 class AnticheatSupport(Preference):
+    @override
     def get_state(self) -> bool:
         return False
 
+    @override
     def set_state(self, presenter: Presenter, state: bool) -> bool:
         if state:
             if presenter.show_prompt_boolean("Enabling ptrace is a security degradation. Do you want to continue?"):

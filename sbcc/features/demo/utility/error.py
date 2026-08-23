@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+from typing import override
 from sbcc_framework.feature import feature, Frontend
 from sbcc_framework.feature.utility import Utility
 from sbcc_framework.presenter import Presenter
@@ -14,5 +15,6 @@ from sbcc_framework.presenter import Presenter
     frontend=Frontend.GUI
 )
 class ErrorUtil(Utility):
+    @override
     def run(self, presenter: Presenter) -> int | None:
-        raise RuntimeError("Error")
+        raise RuntimeError

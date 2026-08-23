@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from time import sleep
-
+from typing import override, ClassVar
 from sbcc.features.demo import CATEGORY_SOFTWARE_UTILS
 from sbcc_framework.feature import feature
 from sbcc_framework.feature.utility import Utility
@@ -17,11 +17,9 @@ from sbcc_framework.presenter import Presenter
     category=CATEGORY_SOFTWARE_UTILS
 )
 class InstallVPN(Utility):
-    providers: dict[str, str] = {"mullvad": "Mullvad VPN", "ivpn": "IVPN", "protonvpn": "Proton VPN"}
+    providers: ClassVar[dict[str, str]] = {"mullvad": "Mullvad VPN", "ivpn": "IVPN", "protonvpn": "Proton VPN"}
 
-    def is_available(self) -> str | None:
-        return None
-
+    @override
     def run(self, presenter: Presenter) -> int | None:
         chooser = presenter.create_chooser()
         chooser.set_context("Choose a VPN provider")
@@ -35,7 +33,7 @@ class InstallVPN(Utility):
         progress_bar.set_context(f"Installing {provider}...")
         progress_bar.show()
         while progress_bar.get_progress() < 1:
-            if progress_bar.get_progress() > 0.5:
+            if progress_bar.get_progress() > 0.5:  # noqa: PLR2004
                 progress_bar.set_show_percentage(False)
             progress_bar.add_progress(0.1)
             sleep(0.5)
