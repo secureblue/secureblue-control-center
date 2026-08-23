@@ -5,12 +5,7 @@
 import importlib
 import pkgutil
 
-from collections.abc import Callable
 from pathlib import Path
-from typing import Final
-from sbcc_util import gettext_marker
-
-_: Final[Callable[[str], str]] = gettext_marker()
 
 
 def load_features() -> None:
