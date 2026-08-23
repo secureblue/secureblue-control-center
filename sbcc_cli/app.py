@@ -25,15 +25,7 @@ from sbcc_util import gettext_marker, ANSI_BLUE, ANSI_RESET
 _: Final[Callable[[str], str]] = gettext_marker()
 
 
-def add_category(command: click.Group, categories: dict[str, Group], compiled: CompiledFeature) -> None:
-    category_name = compiled.category.name
-    if category_name not in categories:
-        group = click.group(name=category_name, help=compiled.category.description)(lambda: None)
-        categories[category_name] = group
-        command.add_command(group)
-
-
-def state_bool_to_str(value: bool) -> str:
+def _state_bool_to_str(value: bool) -> str:
     return _("enabled") if value else _("disabled")
 
 
@@ -75,19 +67,26 @@ class SBCCApplicationCLI:
     def __init__(self, main_command: Group):
         self.main_command = main_command
 
-        self.register_preferences()
-        self.register_utilities()
+        self.__register_all_preferences()
+        self.__register_all_utilities()
 
-    def register_preferences(self) -> None:
+    def __register_all_preferences(self) -> None:
         pref_group = click.group(name="pref", help=_("All available preferences"))(lambda: None)
-
         categories: dict[str, Group] = {}
 
+        self.__register_simple_preferences(pref_group, categories)
+        self.__register_multi_preferences(pref_group, categories)
+        self.__register_complex_preferences(pref_group, categories)
+
+        self.main_command.add_command(pref_group)
+
+    @classmethod
+    def __register_simple_preferences(cls, pref_group: Group, categories: dict[str, Group]) -> None:
         for compiled in Preference.REGISTRY:
             if not compiled.supports_cli() or not compiled.supports_environment():
                 continue
 
-            add_category(pref_group, categories, compiled)
+            cls.__add_category(pref_group, categories, compiled)
 
             feature_group = click.group(name=compiled.name, help=compiled.description)(lambda: None)
             categories[compiled.category.name].add_command(feature_group)
@@ -101,7 +100,7 @@ class SBCCApplicationCLI:
                     print(unavailable_context)
                     ctx.exit(1)
 
-                state = state_bool_to_str(__capture.feature.get_state())
+                state = _state_bool_to_str(__capture.feature.get_state())
                 print(_("The preference '{0}' is currently {1}.").format(__capture.display_name, state))
 
             feature_group.add_command(getter)
@@ -120,7 +119,7 @@ class SBCCApplicationCLI:
                 new_state_bool = state == "on"
 
                 if old_state_bool == new_state_bool:
-                    new_state_str = state_bool_to_str(new_state_bool)
+                    new_state_str = _state_bool_to_str(new_state_bool)
                     print(_("The preference '{0}' is already {1}.").format(__capture.display_name, new_state_str))
                     ctx.exit(0)
 
@@ -131,17 +130,19 @@ class SBCCApplicationCLI:
                     print(ANSI_BLUE + _("The preference '{0}' was not changed.")
                           .format(__capture.display_name) + ANSI_RESET)
                 else:
-                    resulting_state_str = state_bool_to_str(resulting_state_bool)
+                    resulting_state_str = _state_bool_to_str(resulting_state_bool)
                     print(ANSI_BLUE + _("The preference '{0}' was changed to {1}.")
                           .format(__capture.display_name, resulting_state_str) + ANSI_RESET)
 
             feature_group.add_command(setter)
 
+    @classmethod
+    def __register_multi_preferences(cls, pref_group: Group, categories: dict[str, Group]) -> None:
         for multi_compiled in MultiPreference.REGISTRY:
             if not multi_compiled.supports_cli() or not multi_compiled.supports_environment():
                 continue
 
-            add_category(pref_group, categories, multi_compiled)
+            cls.__add_category(pref_group, categories, multi_compiled)
 
             feature_group = click.group(name=multi_compiled.name, help=multi_compiled.description)(lambda: None)
             categories[multi_compiled.category.name].add_command(feature_group)
@@ -189,11 +190,13 @@ class SBCCApplicationCLI:
 
             feature_group.add_command(setter)
 
+    @classmethod
+    def __register_complex_preferences(cls, pref_group: Group, categories: dict[str, Group]) -> None:
         for complex_compiled in ComplexPreference.REGISTRY:
             if not complex_compiled.supports_cli() or not complex_compiled.supports_environment():
                 continue
 
-            add_category(pref_group, categories, complex_compiled)
+            cls.__add_category(pref_group, categories, complex_compiled)
 
             feature_group = click.group(name=complex_compiled.name, help=complex_compiled.description)(lambda: None)
             categories[complex_compiled.category.name].add_command(feature_group)
@@ -204,18 +207,22 @@ class SBCCApplicationCLI:
             feature_setter = complex_compiled.feature.register_setter(CLIPresenter())
             feature_group.add_command(feature_setter, "set")
 
-        self.main_command.add_command(pref_group)
-
-    def register_utilities(self) -> None:
+    def __register_all_utilities(self) -> None:
         utility_group = click.group(name="utility", help=_("All available utilities"))(lambda: None)
-
         categories: dict[str, Group] = {}
 
+        self.__register_simple_utilities(utility_group, categories)
+        self.__register_complex_utilities(utility_group, categories)
+
+        self.main_command.add_command(utility_group)
+
+    @classmethod
+    def __register_simple_utilities(cls, utility_group: Group, categories: dict[str, Group]) -> None:
         for compiled in Utility.REGISTRY:
             if not compiled.supports_cli() or not compiled.supports_environment():
                 continue
 
-            add_category(utility_group, categories, compiled)
+            cls.__add_category(utility_group, categories, compiled)
 
             @click.command(name=compiled.name, help=compiled.description)
             @pass_context
@@ -230,13 +237,21 @@ class SBCCApplicationCLI:
 
             categories[compiled.category.name].add_command(utility)
 
+    @classmethod
+    def __register_complex_utilities(cls, utility_group: Group, categories: dict[str, Group]) -> None:
         for complex_compiled in ComplexUtility.REGISTRY:
             if not complex_compiled.supports_cli() or not complex_compiled.supports_environment():
                 continue
 
-            add_category(utility_group, categories, complex_compiled)
+            cls.__add_category(utility_group, categories, complex_compiled)
 
             utility = complex_compiled.feature.register(CLIPresenter())
             categories[complex_compiled.category.name].add_command(utility, name=complex_compiled.name)
 
-        self.main_command.add_command(utility_group)
+    @classmethod
+    def __add_category(cls, command: click.Group, categories: dict[str, Group], compiled: CompiledFeature) -> None:
+        category_name = compiled.category.name
+        if category_name not in categories:
+            group = click.group(name=category_name, help=compiled.category.description)(lambda: None)
+            categories[category_name] = group
+            command.add_command(group)
