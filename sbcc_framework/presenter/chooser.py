@@ -49,6 +49,13 @@ class Chooser(ABC):
         """
         self._options[key] = name
 
+    def add_options(self, options: dict[str, str]) -> None:
+        """
+        Adds options to this chooser.
+        :param options: A dictionary of options, mapping option keys to option display names.
+        """
+        self._options.update(options)
+
     def remove_option(self, key: str) -> str | None:
         """
         Removes an option from this chooser.
@@ -56,6 +63,12 @@ class Chooser(ABC):
         :returns: The display name previously associated with the removed option, or None if no such mapping existed.
         """
         return self._options.pop(key) if key in self._options else None
+
+    def clear_options(self) -> None:
+        """
+        Clears all options from this chooser.
+        """
+        self._options.clear()
 
     def choose(self, default: str | None = None) -> str:
         """
