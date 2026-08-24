@@ -9,7 +9,7 @@ from gi.repository import Adw, Gtk
 
 class Sidebar(Adw.Bin):
     sidebar: Gtk.ListBox
-    callbacks: dict[str, Callable[..., Any]]
+    callbacks: dict[str, Callable[[], Any]]
 
     def __init__(self):
         super().__init__()
@@ -26,7 +26,7 @@ class Sidebar(Adw.Bin):
 
         self.callbacks = {}
 
-    def add_entry(self, entry: Gtk.ListBoxRow, callback: Callable[..., Any]) -> None:
+    def add_entry(self, entry: Gtk.ListBoxRow, callback: Callable[[], Any]) -> None:
         """
         Adds an entry to the sidebar.
         :param entry: The entry to add.
