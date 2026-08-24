@@ -75,13 +75,15 @@ class ValidationDialog(Adw.Dialog):
         child.set_margin_bottom(10)
         inner_box.append(child)
 
-        outer_box.append(Gtk.ScrolledWindow(
+        scrolled_window = Gtk.ScrolledWindow(
             child=inner_box,
             vexpand=True,
             hscrollbar_policy=Gtk.PolicyType.NEVER,
             propagate_natural_height=True,
             propagate_natural_width=True
-        ))
+        )
+        scrolled_window.add_css_class("undershoot-bottom")
+        outer_box.append(scrolled_window)
 
         button = Gtk.Button(
             label=_("Submit"),
