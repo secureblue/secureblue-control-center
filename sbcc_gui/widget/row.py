@@ -22,7 +22,7 @@ class SidebarRow(Gtk.ListBoxRow):
 
 
 class BlockableRow[T: Adw.PreferencesRow]:
-    row: Adw.PreferencesRow
+    row: T
     callback: Callable[[Self], None]
     handler_id: int
 
