@@ -82,7 +82,7 @@ class ProgressBar(ABC):
     def get_pulse(self) -> bool:
         """
         Retrieves the pulse mode of this progress bar.
-        :return: The current pulse mode.
+        :returns: The current pulse mode.
         """
 
     @abstractmethod

@@ -24,7 +24,7 @@ class Chooser(ABC):
     def get_context(self) -> str:
         """
         Retrieves the context of this chooser.
-        :return: The context of this chooser.
+        :returns: The context of this chooser.
         """
 
     @abstractmethod
@@ -37,7 +37,7 @@ class Chooser(ABC):
     def get_options(self) -> dict[str, str]:
         """
         Retrieves a copy of the options of this chooser.
-        :return: A dictionary consisting of option keys mapped to their display names.
+        :returns: A dictionary consisting of option keys mapped to their display names.
         """
         return self._options.copy()
 
@@ -53,7 +53,7 @@ class Chooser(ABC):
         """
         Removes an option from this chooser.
         :param key: The option key to remove.
-        :return: The display name previously associated with the removed option, or None.
+        :returns: The display name previously associated with the removed option, or None if no such mapping existed.
         """
         return self._options.pop(key) if key in self._options else None
 

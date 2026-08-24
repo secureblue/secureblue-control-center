@@ -112,7 +112,7 @@ class Presenter(ABC):
     def is_blocked(self) -> bool:
         """
         Retrieves whether this presenter is currently blocked.
-        :return: Whether this presenter is blocked.
+        :returns: Whether this presenter is blocked.
         """
 
     @abstractmethod

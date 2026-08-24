@@ -22,7 +22,7 @@ class Utility(Feature):
         """
         Invoked when this utility is run by the user.
         :param presenter: The presenter to interact with the user.
-        :returns: The exit code to return when run in CLI mode, or `None`.
+        :return: The exit code to return when run in CLI mode, or `None`.
         """
 
 

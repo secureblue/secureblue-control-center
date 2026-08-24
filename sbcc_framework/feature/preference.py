@@ -21,7 +21,7 @@ class Preference(Feature):
     def get_state(self) -> bool:
         """
         Invoked when the current state of this preference is requested.
-        :returns: The current state.
+        :return: The current state.
         """
 
     @abstractmethod
@@ -30,7 +30,7 @@ class Preference(Feature):
         Invoked when the user attempts to change the state of this preference.
         :param presenter: The presenter to interact with the user.
         :param state: The requested new state.
-        :returns: The resulting state.
+        :return: The resulting state.
         """
 
 
@@ -46,14 +46,14 @@ class MultiPreference(Feature):
         """
         Invoked to register all valid states of this preference. The keys represent the valid states, the values are
         display names to those states.
-        :returns: A dictionary mapping each valid state to its display name.
+        :return: A dictionary mapping each valid state to its display name.
         """
 
     @abstractmethod
     def get_state(self) -> str:
         """
         Invoked when the current state of this preference is requested.
-        :returns: The current state.
+        :return: The current state.
         """
 
     @abstractmethod
@@ -62,7 +62,7 @@ class MultiPreference(Feature):
         Invoked when the user attempts to change the state of this preference.
         :param presenter: The presenter to interact with the user.
         :param state: The requested new state.
-        :returns: The resulting state.
+        :return: The resulting state.
         """
 
 
@@ -80,7 +80,7 @@ class ComplexPreference(Feature):
         Invoked when this preference is registered. Allows registering custom subcommands and arguments
         for the getter of this preference.
         :param presenter: The presenter to interact with the user.
-        :returns: The click command to register for this preference's getter.
+        :return: The click command to register for this preference's getter.
         """
 
     @abstractmethod
@@ -89,5 +89,5 @@ class ComplexPreference(Feature):
         Invoked when this preference is registered. Allows registering custom subcommands and arguments
         for the setter of this preference.
         :param presenter: The presenter to interact with the user.
-        :returns: The click command to register for this preference's setter.
+        :return: The click command to register for this preference's setter.
         """

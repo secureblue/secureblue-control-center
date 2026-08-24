@@ -34,7 +34,7 @@ ANSI_RESTORE_CURSOR: Final[str] = "\0338"
 def has_gui() -> bool:
     """
     Checks if the GUI is available in the current environment.
-    :return: Whether the GUI is available.
+    :returns: Whether the GUI is available.
     """
     return importlib.util.find_spec("sbcc_gui") is not None
 
@@ -49,8 +49,8 @@ def gettext_marker() -> Callable[[str], str]:
 def interruptible_ask(banner: str) -> str:
     """
     Retrieves input from the user, gracefully exiting if user interrupts.
-    :param banner:
-    :return:
+    :param banner: The prompt banner to show to the user.
+    :returns: The user input.
     """
     response = None
     try:

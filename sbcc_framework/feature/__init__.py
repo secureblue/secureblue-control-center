@@ -84,8 +84,8 @@ class Feature(ABC):
     def is_available(self) -> str | None:
         """
         Invoked to check if this feature is available. If the feature is unavailable it cannot be used.
-        :returns: None if feature is available,
-          otherwise a string that provides additional context why this feature is unavailable.
+        :return: None if the feature is available,
+          otherwise a string that provides additional context on why this feature is unavailable.
         """
         return None
 
@@ -107,35 +107,35 @@ class CompiledFeature[T]:
     def supports_cli(self) -> bool:
         """
         Retrieves whether this feature supports CLI frontend.
-        :return: Whether this feature supports CLI frontend.
+        :returns: Whether this feature supports CLI frontend.
         """
         return self.frontend in (Frontend.ANY, Frontend.CLI)
 
     def supports_gui(self) -> bool:
         """
         Retrieves whether this feature supports GUI frontend.
-        :return: Whether this feature supports GUI frontend.
+        :returns: Whether this feature supports GUI frontend.
         """
         return self.frontend in (Frontend.ANY, Frontend.GUI)
 
     def supports_server(self) -> bool:
         """
         Retrieves whether this feature supports server environment.
-        :return: Whether this feature supports server environment.
+        :returns: Whether this feature supports server environment.
         """
         return self.environment in (Environment.ANY, Environment.SERVER)
 
     def supports_desktop(self) -> bool:
         """
         Retrieves whether this feature supports desktop environment.
-        :return: Whether this feature supports desktop environment.
+        :returns: Whether this feature supports desktop environment.
         """
         return self.environment in (Environment.ANY, Environment.DESKTOP)
 
     def supports_environment(self) -> bool:
         """
         Retrieves whether this feature supports the current environment.
-        :return: Whether this feature supports the current environment.
+        :returns: Whether this feature supports the current environment.
         """
         return self.supports_desktop() if has_gui() else self.supports_server()
 
