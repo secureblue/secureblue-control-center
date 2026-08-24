@@ -21,7 +21,7 @@ class SidebarRow(Gtk.ListBoxRow):
         self.set_child(box)
 
 
-class BlockableRow[T]:
+class BlockableRow[T: Adw.PreferencesRow]:
     row: Adw.PreferencesRow
     callback: Callable[[Self], None]
     handler_id: int

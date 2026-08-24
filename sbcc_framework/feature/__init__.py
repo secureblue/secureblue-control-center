@@ -91,7 +91,7 @@ class Feature(ABC):
 
 
 @dataclasses.dataclass
-class CompiledFeature[T]:
+class CompiledFeature[T: Feature]:
     """
     A feature with metadata.
     """
