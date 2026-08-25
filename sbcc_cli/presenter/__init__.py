@@ -33,6 +33,7 @@ def _prompt_until_valid(prompt_func: Callable[[str], str], prompt_text: str, pro
                 else _("Invalid input: {0}").format(prompt_regex.get_context())
             )
             sys.stdout.write(ANSI_RESET)
+            sys.stdout.flush()
     return choice
 
 
