@@ -206,7 +206,10 @@ class InputDialog(ValidationDialog):
     def _on_realize(self, *_) -> None:
         window = require_not_none(self.get_root())
         focus_handler = window.connect("notify::is-active", self._on_focus_changed)
-        self.connect("unrealize", lambda *_: window.disconnect(focus_handler))
+        self.connect(
+            "unrealize",
+            lambda *_, _window=window, _focus_handler=focus_handler: _window.disconnect(_focus_handler)
+        )
 
     def _on_focus_changed(self, *_) -> None:
         if self.popover.is_visible():
