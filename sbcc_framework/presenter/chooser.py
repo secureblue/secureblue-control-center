@@ -62,7 +62,7 @@ class Chooser(ABC):
         :param key: The option key to remove.
         :returns: The display name previously associated with the removed option, or None if no such mapping existed.
         """
-        return self._options.pop(key) if key in self._options else None
+        return self._options.pop(key, None)
 
     def clear_options(self) -> None:
         """
