@@ -4,14 +4,12 @@
 
 # ruff: noqa: PLR2004
 
-import dataclasses
-
 from abc import ABC, abstractmethod
-from dataclasses import field
+from dataclasses import field, dataclass
 from sbcc_framework import PresenterLock
 
 
-@dataclasses.dataclass
+@dataclass
 class Chooser(ABC):
     """
     A chooser. Allows to prompt the user for a set of options.

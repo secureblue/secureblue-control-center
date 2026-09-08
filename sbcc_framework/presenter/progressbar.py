@@ -2,13 +2,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import dataclasses
-
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from sbcc_framework import PresenterLock
 
 
-@dataclasses.dataclass
+@dataclass
 class ProgressBar(ABC):
     """
     A progress bar. Can show progress and a context above the progress bar.

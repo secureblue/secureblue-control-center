@@ -2,10 +2,9 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import dataclasses
-
 from abc import ABC
 from collections.abc import Callable
+from dataclasses import dataclass
 from enum import Enum, auto
 from typing import Final
 from sbcc_util import gettext_marker, has_gui
@@ -49,7 +48,7 @@ class BooleanResponse(Enum):
     """Equivalent to False"""
 
 
-@dataclasses.dataclass
+@dataclass
 class Category:
     """
     A feature category, used for grouping and additional information in the UI.
@@ -90,7 +89,7 @@ class Feature(ABC):
         return None
 
 
-@dataclasses.dataclass
+@dataclass
 class CompiledFeature[T: Feature]:
     """
     A feature with metadata.

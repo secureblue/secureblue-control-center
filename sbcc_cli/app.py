@@ -8,11 +8,10 @@
 The CLI application
 """
 
-import dataclasses
 import click
 
 from collections.abc import Callable
-from dataclasses import field
+from dataclasses import field, dataclass
 from typing import Final, Any, override
 from click import Context, Group, pass_context, ParamType, Parameter
 from click.shell_completion import CompletionItem
@@ -29,7 +28,7 @@ def _state_bool_to_str(value: bool) -> str:
     return _("enabled") if value else _("disabled")
 
 
-@dataclasses.dataclass
+@dataclass
 class MultiPrefParamType(ParamType):
     name = "multi-pref"
     preference: MultiPreference
