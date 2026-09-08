@@ -18,11 +18,10 @@ class Utility(Feature):
     REGISTRY: ClassVar[list[CompiledFeature[Self]]] = []
 
     @abstractmethod
-    def run(self, presenter: Presenter) -> int | None:
+    def run(self, presenter: Presenter) -> None:
         """
         Invoked when this utility is run by the user.
         :param presenter: The presenter to interact with the user.
-        :return: The exit code to return when run in CLI mode, or `None`.
         """
 
 

@@ -20,7 +20,7 @@ class InstallVPN(Utility):
     providers: ClassVar[dict[str, str]] = {"mullvad": "Mullvad VPN", "ivpn": "IVPN", "protonvpn": "Proton VPN"}
 
     @override
-    def run(self, presenter: Presenter) -> int | None:
+    def run(self, presenter: Presenter) -> None:
         chooser = presenter.create_chooser()
         chooser.set_context("Choose a VPN provider")
         for key, value in self.providers.items():
@@ -47,5 +47,3 @@ class InstallVPN(Utility):
             sleep(0.1)
         progress_bar.close()
         presenter.show_prompt_text(f"{provider} was installed successfully!")
-
-        return 0

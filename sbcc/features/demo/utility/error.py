@@ -16,5 +16,5 @@ from sbcc_framework.presenter import Presenter
 )
 class ErrorUtil(Utility):
     @override
-    def run(self, presenter: Presenter) -> int | None:
+    def run(self, presenter: Presenter) -> None:
         raise RuntimeError

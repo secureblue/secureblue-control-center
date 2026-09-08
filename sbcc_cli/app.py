@@ -231,8 +231,7 @@ class SBCCApplicationCLI:
                     print(_("The utility '{0}' is not available:").format(__capture.display_name))
                     print(unavailable_context)
                     ctx.exit(1)
-                exit_code = __capture.feature.run(CLIPresenter())
-                ctx.exit(exit_code if exit_code is not None else 0)
+                __capture.feature.run(CLIPresenter())
 
             categories[compiled.category.name].add_command(utility)
 
