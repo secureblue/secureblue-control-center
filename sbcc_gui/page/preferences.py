@@ -88,10 +88,10 @@ class PreferencesPage(FeaturesPage):
                 state = feature_getter()
                 apply_initial_state(wrapper, state)
             except Exception as e:
-                _wrapper.disable_with_error(e, False)
-                self.feature_load_error(compiled, e)
-                msg = f"Failed to initialize feature {compiled}"
-                raise FeatureException(msg) from e
+                ex = FeatureException(f"Failed to initialize feature {compiled}")
+                _wrapper.disable_with_error(ex, False)
+                self.feature_load_error(compiled, ex)
+                raise ex from e
 
         Thread(name=f"sbcc_gui:{compiled.name}:initialize", target=initialize,
                args=(compiled, wrapper)).start()

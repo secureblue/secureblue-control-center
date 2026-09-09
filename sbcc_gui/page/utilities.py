@@ -53,7 +53,7 @@ class UtilitiesPage(FeaturesPage):
             else:
                 self.feature_loaded()
         except Exception as e:
-            wrapper.disable_with_error(e, False)
-            self.feature_load_error(compiled, e)
-            msg = f"Failed to initialize feature {compiled}"
-            raise FeatureException(msg) from e
+            ex = FeatureException(f"Failed to initialize feature {compiled}")
+            wrapper.disable_with_error(ex, False)
+            self.feature_load_error(compiled, ex)
+            raise ex from e
