@@ -160,7 +160,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         self.utilities_page.add_utility(compiled, on_run)
 
-    # ruff: ignore[C901, PLR0913, PLR0917]
+    # ruff: ignore[PLR0913, PLR0917]
     def __handle_feature[T](self,
                             compiled: CompiledFeature,
                             row: FeatureRow,
@@ -172,52 +172,65 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         def run(_state: T) -> None:
             @on_gtk_thread()
-            def apply_result(_result: T) -> None:
-                if gui_getter() != _result:
+            def apply_state(state: T) -> None:
+                if gui_getter() != state:
                     row.block_handler()
-                    gui_setter(_result)
+                    gui_setter(state)
                     row.unblock_handler()
-                self.__feature_finished()
 
             def cancel_func() -> None:
                 try:
-                    _result = feature_getter()
-                except Exception as _e:
-                    row.disable_with_error(_e, True)
+                    _current_state = feature_getter()
+                except Exception as __e:
+                    _ex = FeatureException(f"Failed to get state of feature {compiled} while running cancel func")
+                    row.disable_with_error(_ex, True)
                     self.__feature_finished()
-                    __msg = f"Failed to get state of feature {compiled} while running cancel func"
-                    raise FeatureException(__msg) from _e
+                    raise _ex from __e
 
-                apply_result(_result)
+                apply_state(_current_state)
+                self.__feature_finished()
 
-                _msg = f"User cancelled feature {compiled}{f", reset to {_result}" if _result is not None else ""}"
+                _msg = (f"User cancelled feature {compiled}"
+                        f"{f", reset to {_current_state}" if _current_state is not None else ""}")
                 raise UserCancelFeatureException(_msg)
 
             try:
                 current_state = feature_getter()
             except Exception as e:
-                row.disable_with_error(e, True)
+                ex = FeatureException(f"Failed to get state of feature {compiled}")
+                row.disable_with_error(ex, True)
                 self.__feature_finished()
-                msg = f"Failed to get state of feature {compiled}"
-                raise FeatureException(msg) from e
+                raise ex from e
 
             if current_state is not None and current_state == _state:
                 self.__preference_changed_toast()
                 return
 
             try:
-                result = feature_setter(GUIPresenter(self, compiled, cancel_func), _state)
+                resulting_state = feature_setter(GUIPresenter(self, compiled, cancel_func), _state)
             except UserCancelFeatureException:
                 return
             except FeatureException:
                 raise
             except Exception as e:
-                self.__show_feature_error_graceful(compiled, e)
-                self.__feature_finished()
-                msg = f"Uncaught exception in feature {compiled}"
-                raise RuntimeError(msg) from e
+                try:
+                    current_state = feature_getter()
+                except Exception as _e:
+                    ex = FeatureException(f"Failed to get state of feature {compiled} while handling setter error")
+                    row.disable_with_error(ex, True)
+                    self.__feature_finished()
+                    raise ex from _e
 
-            apply_result(result)
+                apply_state(current_state)
+
+                ex = FeatureException(f"Uncaught exception in feature {compiled}"
+                                      f"{f", reset to {current_state}" if current_state is not None else ""}")
+                self.__show_feature_error_graceful(compiled, ex)
+                self.__feature_finished()
+                raise ex from e
+
+            apply_state(resulting_state)
+            self.__feature_finished()
 
         Thread(name=f"sbcc_gui:{compiled.name}:run", target=run, args=(gui_getter(),)).start()
 
