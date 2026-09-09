@@ -105,6 +105,7 @@ class ErrorPage(Adw.Bin):
             halign=Gtk.Align.CENTER,
             margin_start=25,
             margin_end=25,
+            margin_top=25,
             margin_bottom=25,
             spacing=20,
             vexpand=True
