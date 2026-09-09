@@ -5,11 +5,11 @@
 from collections.abc import Callable
 from threading import Thread
 from typing import Any, Final
-from gi.repository import GLib
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import Preference, MultiPreference
+from sbcc_gui import FeatureException, on_gtk_thread
 from sbcc_gui.page import FeaturesPage
-from sbcc_gui.widget.row import PreferenceRow, MultiPreferenceRow
+from sbcc_gui.widget.row import PreferenceRow, MultiPreferenceRow, FeatureRow
 from sbcc_util import gettext_marker
 
 _: Final[Callable[[str], str]] = gettext_marker()
@@ -20,31 +20,61 @@ class PreferencesPage(FeaturesPage):
         super().__init__(*args, **kwargs, title=_("Preferences"))
 
     def add_preference(self, compiled: CompiledFeature[Preference], callback: Callable[[PreferenceRow], Any]) -> None:
+        wrapper = self.initialize_preference(
+            compiled,
+            callback,
+            PreferenceRow,
+            compiled.feature.get_state,
+            lambda _wrapper, state: _wrapper.get_row().set_active(state)
+        )
+
+        self.categories[compiled.category.name].add(wrapper.get_row())
+
+    def add_multi_preference(self, compiled: CompiledFeature[MultiPreference],
+                             callback: Callable[[MultiPreferenceRow], Any]) -> None:
+        def initialize(_wrapper: MultiPreferenceRow, state: tuple[dict[str, str], str]) -> None:
+            for key, value in state[0].items():
+                _wrapper.add_option(key, value)
+            _wrapper.set_selected_option(state[1])
+
+        wrapper = self.initialize_preference(
+            compiled,
+            callback,
+            MultiPreferenceRow,
+            lambda: (compiled.feature.get_options(), compiled.feature.get_state()),
+            initialize
+        )
+
+        self.categories[compiled.category.name].add(wrapper.get_row())
+
+    def initialize_preference[R: FeatureRow, T](self,
+                                                compiled: CompiledFeature,
+                                                callback: Callable[[R], Any],
+                                                wrapper_constructor: Callable[[CompiledFeature, FeaturesPage,
+                                                                               Callable[[R], Any]], R],
+                                                feature_getter: Callable[[], T],
+                                                feature_initializer: Callable[[R, T], Any]) -> R:
         self.feature_loading()
 
         category_name = compiled.category.name
         if category_name not in self.categories:
             self.insert_category(compiled.category)
 
-        wrapper = PreferenceRow(
-            name=compiled.name,
-            title=compiled.display_name,
-            subtitle=compiled.description,
-            callback=callback
-        )
+        wrapper = wrapper_constructor(compiled, self, callback)
 
-        def set_initial_state(_compiled: CompiledFeature[Preference], _wrapper: PreferenceRow) -> None:
-            def toggle_on() -> None:
+        def initialize(_compiled: CompiledFeature, _wrapper: R) -> None:
+            @on_gtk_thread()
+            def apply_initial_state(_wrapper: R, _state: T) -> None:
                 _wrapper.block_handler()
-                _wrapper.get_row().set_active(True)
+                feature_initializer(_wrapper, _state)
                 _wrapper.unblock_handler()
 
                 self.feature_loaded()
 
-            def disable_preference(reason: str) -> None:
+            @on_gtk_thread()
+            def disable_preference(_wrapper: R, reason: str) -> None:
                 row = _wrapper.get_row()
                 row.set_tooltip_text(_("This preference is not available: {0}").format(reason))
-                row.set_activatable(False)
                 row.set_sensitive(False)
 
                 self.feature_loaded()
@@ -52,66 +82,18 @@ class PreferencesPage(FeaturesPage):
             try:
                 unavailable_context = _compiled.feature.is_available()
                 if unavailable_context is not None:
-                    GLib.idle_add(disable_preference, unavailable_context)
+                    disable_preference(wrapper, unavailable_context)
                     return
 
-                if _compiled.feature.get_state():
-                    GLib.idle_add(toggle_on)
-                else:
-                    self.feature_loaded()
+                state = feature_getter()
+                apply_initial_state(wrapper, state)
             except Exception as e:
-                self.main_window.show_error_and_exit(_compiled, e)
+                _wrapper.disable_with_error(e, False)
+                self.feature_load_error(compiled, e)
+                msg = f"Failed to initialize feature {compiled}"
+                raise FeatureException(msg) from e
 
-        Thread(name=f"sbcc_gui:{compiled.name}:set-initial-state", target=set_initial_state,
+        Thread(name=f"sbcc_gui:{compiled.name}:initialize", target=initialize,
                args=(compiled, wrapper)).start()
 
-        self.categories[category_name].add(wrapper.get_row())
-
-    def add_multi_preference(self, compiled: CompiledFeature[MultiPreference],
-                             callback: Callable[[MultiPreferenceRow], Any]) -> None:
-        self.feature_loading()
-
-        category_name = compiled.category.name
-        if category_name not in self.categories:
-            self.insert_category(compiled.category)
-
-        wrapper = MultiPreferenceRow(
-            name=compiled.name,
-            title=compiled.display_name,
-            subtitle=compiled.description,
-            callback=callback
-        )
-
-        def set_initial_state(_compiled: CompiledFeature[MultiPreference], _wrapper: MultiPreferenceRow) -> None:
-            def initialize(_options: dict[str, str], _state: str) -> None:
-                for key, value in _options.items():
-                    _wrapper.add_option(key, value)
-                _wrapper.set_selected_option(_state)
-                _wrapper.ready()
-
-                self.feature_loaded()
-
-            def disable_preference(reason: str) -> None:
-                row = _wrapper.get_row()
-                row.set_tooltip_text(_("This preference is not available: {0}").format(reason))
-                row.set_activatable(False)
-                row.set_sensitive(False)
-
-                self.feature_loaded()
-
-            try:
-                unavailable_context = _compiled.feature.is_available()
-                if unavailable_context is not None:
-                    GLib.idle_add(disable_preference, unavailable_context)
-                    return
-
-                options = _compiled.feature.get_options()
-                state = _compiled.feature.get_state()
-                GLib.idle_add(initialize, options, state)
-            except Exception as e:
-                self.main_window.show_error_and_exit(_compiled, e)
-
-        Thread(name=f"sbcc_gui:{compiled.name}:set-initial-state", target=set_initial_state,
-               args=(compiled, wrapper)).start()
-
-        self.categories[category_name].add(wrapper.get_row())
+        return wrapper

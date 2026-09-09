@@ -3,22 +3,25 @@
 # SPDX-License-Identifier: Apache-2.0
 
 from collections.abc import Callable
-from threading import Event, Thread
+from threading import Thread
 from typing import Final, Any, override
 from gi.repository import Adw, GLib, Gio, Gtk
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.feature.preference import Preference, MultiPreference
 from sbcc_framework.feature.utility import Utility
+from sbcc_framework.presenter import Presenter
+from sbcc_gui import UserCancelFeatureException, FeatureException, on_gtk_thread
 from sbcc_gui.page.utilities import UtilitiesPage
-from sbcc_gui.widget.dialog import FatalErrorDialog, TextDialog
-from sbcc_gui.widget.row import SidebarRow, PreferenceRow, MultiPreferenceRow
 from sbcc_gui.page.home import HomePage
 from sbcc_gui.page.preferences import PreferencesPage
 from sbcc_gui.presenter import GUIPresenter
+from sbcc_gui.widget import Banner
+from sbcc_gui.widget.dialog import ErrorDialog, TextDialog
+from sbcc_gui.widget.row import SidebarRow, PreferenceRow, MultiPreferenceRow, FeatureRow, UtilityRow
 from sbcc_gui.widget.sidebar import Sidebar
 from sbcc_gui.window import Toastable
-from sbcc_util import UserCancelFeatureException, gettext_marker, SBCC_VERSION, SBCC_ISSUES_PAGE, SBCC_WEBSITE, \
-    SBCC_APPLICATION_ID, require_not_none
+from sbcc_util import gettext_marker, SBCC_VERSION, SBCC_ISSUES_PAGE, SBCC_WEBSITE, SBCC_APPLICATION_ID, \
+    require_not_none
 
 _: Final[Callable[[str], str]] = gettext_marker()
 
@@ -28,6 +31,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
     toast_overlay: Adw.ToastOverlay
     sidebar: Sidebar
     stack: Adw.ViewStack
+    banner: Banner
 
     preferences_page: PreferencesPage
     utilities_page: UtilitiesPage
@@ -51,7 +55,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         menu = Gio.Menu().new()
         about_action = Gio.SimpleAction.new("about")
-        about_action.connect("activate", lambda *_: self.show_about())
+        about_action.connect("activate", lambda *_: self.__show_about())
         self.add_action(about_action)
         menu.append(_("About"), "win.about")
 
@@ -80,7 +84,14 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         self.stack.set_enable_transitions(True)
         self.stack.set_transition_duration(150)
 
-        self.toast_overlay.set_child(self.stack)
+        overlay = Gtk.Overlay()
+
+        self.banner = Banner(child=Adw.Spinner())
+        overlay.add_overlay(self.banner)
+
+        overlay.set_child(self.stack)
+
+        self.toast_overlay.set_child(overlay)
 
         # Home Page
         self.stack.add_named(HomePage(), "home")
@@ -106,117 +117,131 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         )
 
     @override
+    @on_gtk_thread()
     def show_toast(self, toast: Adw.Toast) -> None:
         self.toast_overlay.add_toast(toast)
 
     def add_preference(self, compiled: CompiledFeature[Preference]) -> None:
         def on_toggle(wrapper: PreferenceRow) -> None:
-            self.sidebar.set_sensitive(False)
-            self.stack.set_sensitive(False)
-
-            def do_toggle(_state: bool) -> None:
-                def apply_result(_result: bool) -> None:
-                    if wrapper.get_row().get_active() != _result:
-                        wrapper.block_handler()
-                        wrapper.get_row().set_active(_result)
-                        wrapper.unblock_handler()
-                    self.sidebar.set_sensitive(True)
-                    self.stack.set_sensitive(True)
-
-                def cancel_func() -> None:
-                    def get_state(_event: Event, _result: list[bool]) -> None:
-                        try:
-                            _result[0] = compiled.feature.get_state()
-                        except Exception as _e:
-                            self.show_error_and_exit(compiled, _e)
-                            return
-
-                        _event.set()
-
-                    _result: list[bool] = [False]
-                    event = Event()
-                    Thread(name=f"sbcc_gui:{compiled.name}:get-state", target=get_state, args=(event, _result)).start()
-                    event.wait()
-                    GLib.idle_add(apply_result, _result[0])
-
-                    msg = f"User cancelled preference {compiled}, reset to {_result[0]}"
-                    raise UserCancelFeatureException(msg)
-
-                try:
-                    current_state = compiled.feature.get_state()
-
-                    if current_state == _state:
-                        GLib.idle_add(self.__preference_changed_toast)
-                        return
-
-                    result = compiled.feature.set_state(GUIPresenter(self, compiled, cancel_func), _state)
-                except UserCancelFeatureException:
-                    raise
-                except Exception as e:
-                    self.show_error_and_exit(compiled, e)
-                    return
-
-                GLib.idle_add(apply_result, result)
-
-            Thread(name=f"sbcc_gui:{compiled.name}:do-toggle", target=do_toggle,
-                   args=(wrapper.get_row().get_active(),)).start()
+            self.__handle_feature(
+                compiled,
+                wrapper,
+                wrapper.get_row().get_active,
+                compiled.feature.get_state,
+                compiled.feature.set_state,
+                wrapper.get_row().set_active
+            )
 
         self.preferences_page.add_preference(compiled, on_toggle)
 
     def add_multi_preference(self, compiled: CompiledFeature[MultiPreference]) -> None:
         def on_change(wrapper: MultiPreferenceRow) -> None:
-            self.sidebar.set_sensitive(False)
-            self.stack.set_sensitive(False)
-
-            def do_change(_state: str) -> None:
-                def apply_result(_result: str) -> None:
-                    if wrapper.get_selected_option() != _result:
-                        wrapper.block_handler()
-                        wrapper.set_selected_option(_result)
-                        wrapper.unblock_handler()
-                    self.sidebar.set_sensitive(True)
-                    self.stack.set_sensitive(True)
-
-                def cancel_func() -> None:
-                    def get_state(_event: Event, _result: list[str]) -> None:
-                        try:
-                            _result[0] = compiled.feature.get_state()
-                        except Exception as _e:
-                            self.show_error_and_exit(compiled, _e)
-                            return
-
-                        _event.set()
-
-                    _result: list[str] = [""]
-                    event = Event()
-                    Thread(name=f"sbcc_gui:{compiled.name}:get-state", target=get_state, args=(event, _result)).start()
-                    event.wait()
-                    GLib.idle_add(apply_result, _result[0])
-
-                    msg = f"User cancelled preference {compiled}, reset to {_result[0]}"
-                    raise UserCancelFeatureException(msg)
-
-                try:
-                    current_state = compiled.feature.get_state()
-
-                    if current_state == _state:
-                        GLib.idle_add(self.__preference_changed_toast)
-                        return
-
-                    result = compiled.feature.set_state(GUIPresenter(self, compiled, cancel_func), _state)
-                except UserCancelFeatureException:
-                    raise
-                except Exception as e:
-                    self.show_error_and_exit(compiled, e)
-                    return
-
-                GLib.idle_add(apply_result, result)
-
-            Thread(name=f"sbcc_gui:{compiled.name}:do-change", target=do_change,
-                   args=(wrapper.get_selected_option(),)).start()
+            self.__handle_feature(
+                compiled,
+                wrapper,
+                wrapper.get_selected_option,
+                compiled.feature.get_state,
+                compiled.feature.set_state,
+                wrapper.set_selected_option
+            )
 
         self.preferences_page.add_multi_preference(compiled, on_change)
 
+    def add_utility(self, compiled: CompiledFeature[Utility]) -> None:
+        def on_run(wrapper: UtilityRow) -> None:
+            self.__handle_feature(
+                compiled,
+                wrapper,
+                lambda: None,
+                lambda: None,
+                lambda presenter, _: compiled.feature.run(presenter),
+                lambda _: None
+            )
+
+        self.utilities_page.add_utility(compiled, on_run)
+
+    # ruff: ignore[C901, PLR0913, PLR0917]
+    def __handle_feature[T](self,
+                            compiled: CompiledFeature,
+                            row: FeatureRow,
+                            gui_getter: Callable[[], T],
+                            feature_getter: Callable[[], T],
+                            feature_setter: Callable[[Presenter, T], T],
+                            gui_setter: Callable[[T], Any]) -> None:
+        self.__feature_start(compiled)
+
+        def run(_state: T) -> None:
+            @on_gtk_thread()
+            def apply_result(_result: T) -> None:
+                if gui_getter() != _result:
+                    row.block_handler()
+                    gui_setter(_result)
+                    row.unblock_handler()
+                self.__feature_finished()
+
+            def cancel_func() -> None:
+                try:
+                    _result = feature_getter()
+                except Exception as _e:
+                    row.disable_with_error(_e, True)
+                    self.__feature_finished()
+                    __msg = f"Failed to get state of feature {compiled} while running cancel func"
+                    raise FeatureException(__msg) from _e
+
+                apply_result(_result)
+
+                _msg = f"User cancelled feature {compiled}{f", reset to {_result}" if _result is not None else ""}"
+                raise UserCancelFeatureException(_msg)
+
+            try:
+                current_state = feature_getter()
+            except Exception as e:
+                row.disable_with_error(e, True)
+                self.__feature_finished()
+                msg = f"Failed to get state of feature {compiled}"
+                raise FeatureException(msg) from e
+
+            if current_state is not None and current_state == _state:
+                self.__preference_changed_toast()
+                return
+
+            try:
+                result = feature_setter(GUIPresenter(self, compiled, cancel_func), _state)
+            except UserCancelFeatureException:
+                return
+            except FeatureException:
+                raise
+            except Exception as e:
+                self.__show_feature_error_graceful(compiled, e)
+                self.__feature_finished()
+                msg = f"Uncaught exception in feature {compiled}"
+                raise RuntimeError(msg) from e
+
+            apply_result(result)
+
+        Thread(name=f"sbcc_gui:{compiled.name}:run", target=run, args=(gui_getter(),)).start()
+
+    def __feature_start(self, compiled: CompiledFeature) -> None:
+        self.__block_ui()
+        self.banner.reveal(_('"{0}" is running...').format(compiled.display_name))
+
+    @on_gtk_thread()
+    def __feature_finished(self) -> None:
+        self.banner.collapse()
+        self.__unblock_ui()
+
+    def __block_ui(self) -> None:
+        self.sidebar.set_sensitive(False)
+        self.stack.set_sensitive(False)
+
+    def __unblock_ui(self) -> None:
+        self.sidebar.set_sensitive(True)
+        self.stack.set_sensitive(True)
+
+    def __show_about(self) -> None:
+        self.about.present(self)
+
+    @on_gtk_thread()
     def __preference_changed_toast(self) -> None:
         self.show_toast(Adw.Toast(
             title=_("Preference was changed externally"),
@@ -224,8 +249,7 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
             button_label=_("More information"),
             action_name="win.pref_changed_dialog"
         ))
-        self.sidebar.set_sensitive(True)
-        self.stack.set_sensitive(True)
+        self.__feature_finished()
 
     def __preference_changed_dialog(self) -> None:
         dialog = TextDialog(
@@ -235,46 +259,15 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         )
         dialog.choose(self)
 
-    def add_utility(self, compiled: CompiledFeature[Utility]) -> None:
-        def on_run(_: Any) -> None:
-            self.sidebar.set_sensitive(False)
-            self.stack.set_sensitive(False)
-
-            def do_run() -> None:
-                def unblock_ui() -> None:
-                    self.sidebar.set_sensitive(True)
-                    self.stack.set_sensitive(True)
-
-                def cancel_func() -> None:
-                    unblock_ui()
-
-                    msg = f"User cancelled utility {compiled}"
-                    raise UserCancelFeatureException(msg)
-
-                try:
-                    compiled.feature.run(GUIPresenter(self, compiled, cancel_func))
-                except UserCancelFeatureException:
-                    raise
-                except Exception as e:
-                    self.show_error_and_exit(compiled, e)
-                    return
-
-                GLib.idle_add(unblock_ui)
-
-            Thread(name=f"sbcc_gui:{compiled.name}:do-run", target=do_run).start()
-
-        self.utilities_page.add_utility(compiled, on_run)
-
-    def show_about(self) -> None:
-        self.about.present(self)
-
-    @override
-    def show_error_and_exit(self, feature: CompiledFeature, e: Exception) -> None:
-        def show_error() -> None:
-            dialog = FatalErrorDialog(callback=lambda: require_not_none(self.get_application()).quit())
-            dialog.present(self)
-
-        GLib.idle_add(show_error)
-
-        msg = f"Uncaught exception in feature {feature}"
-        raise RuntimeError(msg, e)
+    @on_gtk_thread()
+    def __show_feature_error_graceful(self, compiled: CompiledFeature, error: Exception) -> None:
+        dialog = ErrorDialog(
+            heading=_("Error"),
+            body=(_('The feature "{0}" was aborted due to an unexpected error.\n\n')
+                  + _("If the issue persists, please file a bug report with error details attached "
+                      "via the button below."))
+            .format(compiled.display_name),
+            error=error,
+            button_label=_("Acknowledge")
+        )
+        dialog.present(self)

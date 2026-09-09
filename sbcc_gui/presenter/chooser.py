@@ -2,14 +2,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from threading import Event
-from typing import Any, cast, override
-from gi.repository import GLib
+from typing import override
 from sbcc_framework import PresenterLock
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import Chooser
+from sbcc_gui import SyncResult, on_gtk_thread
 from sbcc_gui.widget.dialog import ChooserDialog, MultiChooserDialog
 from sbcc_gui.window import Toastable
+from sbcc_util import require_not_none
 
 
 class GUIChooser(Chooser):
@@ -35,17 +35,10 @@ class GUIChooser(Chooser):
     def _choose(self, default: str | None) -> str:
         self._presenter.block()
 
-        def show_dialog(_event: Event, _result: list[Any]) -> None:
-            def apply(choice: str) -> None:
-                _result[0] = choice
-                _event.set()
-
-            def cancel() -> None:
-                _result[1] = False
-                _event.set()
-
-            dialog = ChooserDialog(heading=self.compiled.display_name, body=self.context, callback=apply,
-                                   cancel_func=cancel)
+        @on_gtk_thread()
+        def show_dialog(_sync: SyncResult[str]) -> None:
+            dialog = ChooserDialog(heading=self.compiled.display_name, body=self.context,
+                                   callback=_sync.set, cancel_func=_sync.cancel)
 
             for key, value in self._options.items():
                 dialog.add_option(key, value)
@@ -55,35 +48,28 @@ class GUIChooser(Chooser):
 
             dialog.choose(self.main_window.get_window())
 
-        result: list[Any] = ["", True]
-        event = Event()
-        GLib.idle_add(show_dialog, event, result)
-        event.wait()
+        sync = SyncResult[str]()
+        show_dialog(sync)
+        result = sync.get()
 
-        if not result[1]:
+        if result.is_cancelled():
             self._presenter.cancel()
 
         self._presenter.unblock()
 
-        return result[0]
+        return require_not_none(result.value())
 
     @override
     def _choose_multiple(self, default: list[str] | None, min_choices: int, max_choices: int,
                          incompatible_options: list[list[str]] | None) -> list[str]:
         self._presenter.block()
 
-        def show_dialog(_event: Event, _result: list[Any]) -> None:
-            def apply(choices: list[str]) -> None:
-                cast(list[str], _result[0]).extend(choices)
-                _event.set()
-
-            def cancel() -> None:
-                _result[1] = False
-                _event.set()
-
-            dialog = MultiChooserDialog(heading=self.compiled.display_name, body=self.context, callback=apply,
+        @on_gtk_thread()
+        def show_dialog(_sync: SyncResult[list[str]]) -> None:
+            dialog = MultiChooserDialog(heading=self.compiled.display_name, body=self.context,
                                         min_choices=min_choices, max_choices=max_choices,
-                                        incompatible_options=incompatible_options, cancel_func=cancel)
+                                        incompatible_options=incompatible_options,
+                                        callback=_sync.set, cancel_func=_sync.cancel)
 
             for key, value in self._options.items():
                 dialog.add_option(key, value)
@@ -94,14 +80,13 @@ class GUIChooser(Chooser):
 
             dialog.present(self.main_window.get_window())
 
-        result: list[Any] = [[], True]
-        event = Event()
-        GLib.idle_add(show_dialog, event, result)
-        event.wait()
+        sync = SyncResult[list[str]]()
+        show_dialog(sync)
+        result = sync.get()
 
-        if not result[1]:
+        if result.is_cancelled():
             self._presenter.cancel()
 
         self._presenter.unblock()
 
-        return result[0]
+        return require_not_none(result.value())

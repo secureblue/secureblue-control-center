@@ -70,9 +70,3 @@ def require_not_none[T](obj: T | None) -> T:
         msg = "Illegal None value"
         raise ValueError(msg)
     return obj
-
-
-class UserCancelFeatureException(Exception):  # noqa: N818
-    """
-    Gets raised to end thread execution when the user cancels a feature in the GUI.
-    """

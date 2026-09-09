@@ -2,13 +2,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from threading import Event, Thread
+from threading import Thread
 from time import sleep
 from typing import override
 from gi.repository import GLib
 from sbcc_framework import PresenterLock
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import ProgressBar
+from sbcc_gui import on_gtk_thread
 from sbcc_gui.widget.dialog import ProgressDialog
 from sbcc_gui.window import Toastable
 
@@ -17,7 +18,6 @@ class GUIProgressBar(ProgressBar):
     main_window: Toastable
     compiled: CompiledFeature
     dialog: ProgressDialog
-    # We cache states such that the getters don't have to be blocking
     active: bool = False
     progress: float = 0
     context: str = ""
@@ -31,13 +31,11 @@ class GUIProgressBar(ProgressBar):
         self.main_window = main_window
         self.compiled = compiled
 
-        def construct_dialog(_event: Event) -> None:
+        @on_gtk_thread(sync=True)
+        def construct_dialog() -> None:
             self.dialog = ProgressDialog(heading=self.compiled.display_name)
-            _event.set()
 
-        event = Event()
-        GLib.idle_add(construct_dialog, event)
-        event.wait()
+        construct_dialog()
 
     @override
     def _show(self) -> None:
@@ -48,13 +46,11 @@ class GUIProgressBar(ProgressBar):
 
         self._presenter.block()
 
-        def do_show(_event: Event) -> None:
+        @on_gtk_thread(sync=True)
+        def do_show() -> None:
             self.dialog.present(self.main_window.get_window())
-            _event.set()
 
-        event = Event()
-        GLib.idle_add(do_show, event)
-        event.wait()
+        do_show()
 
         if self.pulse:
             self.__start_pulse_thread()
@@ -66,14 +62,13 @@ class GUIProgressBar(ProgressBar):
             raise RuntimeError(msg)
         self.active = False
 
-        def do_close(_event: Event) -> None:
+        @on_gtk_thread(sync=True)
+        def do_close() -> None:
             self.dialog.close()
-            self._presenter.unblock()
-            _event.set()
 
-        event = Event()
-        GLib.idle_add(do_close, event)
-        event.wait()
+        do_close()
+
+        self._presenter.unblock()
 
     @override
     def is_active(self) -> bool:
@@ -143,5 +138,6 @@ class GUIProgressBar(ProgressBar):
         if not self.pulse:
             self.__set_show_percentage(self.show_percentage)
 
+    @on_gtk_thread()
     def __set_show_percentage(self, value: bool) -> None:
-        GLib.idle_add(lambda: self.dialog.set_show_percentage(value))
+        self.dialog.set_show_percentage(value)

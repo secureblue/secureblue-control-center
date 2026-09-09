@@ -4,10 +4,11 @@
 
 from collections.abc import Callable
 from typing import Any, Final, cast, override
-from gi.repository import Gtk, Adw
+from gi.repository import Gtk, Adw, Gio
 from sbcc_framework import Regex
 from sbcc_framework.feature import BooleanResponse
-from sbcc_util import gettext_marker, require_not_none
+from sbcc_gui.widget import ErrorDetails
+from sbcc_util import gettext_marker, require_not_none, SBCC_ISSUES_PAGE
 
 _: Final[Callable[[str], str]] = gettext_marker()
 
@@ -37,20 +38,23 @@ class BaseDialog(Adw.AlertDialog):
 
 
 class ValidationDialog(Adw.Dialog):
+    buttons: dict[str, tuple[str, str | None]]
     cancel_func: Callable[[], Any] | None
     had_response: bool = False
 
-    def __init__(self, heading: str, body: str, child: Gtk.Widget, cancel_func: Callable[[], Any] | None = None,
-                 *args, **kwargs):
-        super().__init__(*args, **kwargs, width_request=350)
+    def __init__(self, heading: str, body: str, child: Gtk.Widget,
+                 buttons: dict[str, tuple[str, str | None]] | None = None,
+                 cancel_func: Callable[[], Any] | None = None, *args, **kwargs):
+        super().__init__(*args, **kwargs, width_request=350, follows_content_size=True)
 
+        self.buttons = buttons if buttons is not None else {"submit": (_("Submit"), "suggested-action")}
         self.cancel_func = cancel_func
 
         outer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         inner_box = Gtk.Box(
             orientation=Gtk.Orientation.VERTICAL,
-            margin_top=30, margin_start=30, margin_end=30,
+            margin_top=30, margin_start=30, margin_end=30, margin_bottom=10,
             vexpand=True
         )
 
@@ -68,30 +72,37 @@ class ValidationDialog(Adw.Dialog):
                 label=body,
                 margin_bottom=20,
                 halign=Gtk.Align.CENTER,
-                justify=Gtk.Justification.CENTER
+                justify=Gtk.Justification.CENTER,
+                wrap=True
             )
         )
 
-        child.set_margin_bottom(10)
         inner_box.append(child)
 
         scrolled_window = Gtk.ScrolledWindow(
             child=inner_box,
             vexpand=True,
             hscrollbar_policy=Gtk.PolicyType.NEVER,
-            propagate_natural_height=True,
-            propagate_natural_width=True
+            propagate_natural_height=True
         )
         scrolled_window.add_css_class("undershoot-bottom")
         outer_box.append(scrolled_window)
 
-        button = Gtk.Button(
-            label=_("Submit"),
-            css_classes=["suggested-action"],
-            margin_top=10, margin_bottom=30, margin_start=30, margin_end=30
-        )
-        button.connect("clicked", self._on_submit)
-        outer_box.append(button)
+        button_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=True, spacing=10,
+                             margin_top=10, margin_start=30, margin_end=30, margin_bottom=30)
+        for response_id, (label, css_class) in self.buttons.items():
+            button = Gtk.Button(child=Gtk.Label(
+                label=label,
+                margin_top=6,
+                margin_start=10,
+                margin_end=10,
+                margin_bottom=6
+            ))
+            if css_class is not None:
+                button.add_css_class(css_class)
+            button.connect("clicked", lambda *_, __response_id=response_id: self._on_response(__response_id))
+            button_box.append(button)
+        outer_box.append(button_box)
 
         self.set_child(outer_box)
 
@@ -100,7 +111,7 @@ class ValidationDialog(Adw.Dialog):
         self.add_css_class("view")
         self.set_presentation_mode(Adw.DialogPresentationMode.FLOATING)
 
-    def _on_submit(self, *_: Any) -> None:
+    def _on_response(self, response_id: str) -> None:
         raise NotImplementedError
 
     def _on_close(self, *_: Any) -> None:
@@ -206,17 +217,14 @@ class InputDialog(ValidationDialog):
     def _on_realize(self, *_) -> None:
         window = require_not_none(self.get_root())
         focus_handler = window.connect("notify::is-active", self._on_focus_changed)
-        self.connect(
-            "unrealize",
-            lambda *_, _window=window, _focus_handler=focus_handler: _window.disconnect(_focus_handler)
-        )
+        self.connect("unrealize", lambda *_: window.disconnect(focus_handler))
 
     def _on_focus_changed(self, *_) -> None:
         if self.popover.is_visible():
             self.popover.popdown()
 
     def _on_activate(self, *_) -> None:
-        self._on_submit()
+        self._on_response("submit")
 
     def _on_input_changed(self, *_) -> None:
         if self.input_invalid:
@@ -225,7 +233,7 @@ class InputDialog(ValidationDialog):
             self.popover.popdown()
 
     @override
-    def _on_submit(self, *_) -> None:
+    def _on_response(self, response_id: str) -> None:
         text = self.entry_row.get_text()
 
         if self.regex is not None and not self.regex.match(text):
@@ -274,8 +282,9 @@ class ProgressDialog(BaseDialog):
         self.body.set_text(body)
 
     @override
-    def close(self) -> None:
+    def close(self) -> bool:
         self.force_close()
+        return True
 
     def get_progress_bar(self) -> Gtk.ProgressBar:
         return self.progress_bar
@@ -437,7 +446,7 @@ class MultiChooserDialog(ValidationDialog):
         return causes
 
     @override
-    def _on_submit(self, *__: Any) -> None:
+    def _on_response(self, response_id: str) -> None:
         if len(self.selected_options) < self.min_choices:
             dialog = TextDialog(
                 heading=_("Invalid selection"),
@@ -452,21 +461,29 @@ class MultiChooserDialog(ValidationDialog):
         self.close()
 
 
-class FatalErrorDialog(BaseDialog):
+class ErrorDialog(ValidationDialog):
     callback: Callable[[], Any] | None
 
-    def __init__(self, callback: Callable[[], Any] | None = None):
-        super().__init__(
-            heading=_("Fatal Error"),
-            body=_("A fatal error has occurred.\nSee logs for additional information.\n\nThe application will exit.")
-        )
+    def __init__(self, *args, error: Exception, button_label: str, destructive: bool = False,
+                 callback: Callable[[], Any] | None = None, **kwargs):
+
+        buttons = {
+            "report": (_("Report bug"), "suggested-action"),
+            "close": (button_label, "destructive-action" if destructive else None)
+        }
+
+        super().__init__(*args, **kwargs, child=ErrorDetails(error=error), buttons=buttons)
 
         self.callback = callback
 
-        self.add_response("exit", _("Close Application"))
-        self.set_response_appearance("exit", Adw.ResponseAppearance.DESTRUCTIVE)
-
     @override
-    def _on_response(self, dialog: Adw.AlertDialog, response_id: str) -> None:
+    def _on_response(self, response_id: str) -> None:
+        if response_id == "report":
+            Gio.AppInfo.launch_default_for_uri_async(SBCC_ISSUES_PAGE)
+            return
+
+        self.had_response = True
+
         if self.callback is not None:
             self.callback()
+        self.close()

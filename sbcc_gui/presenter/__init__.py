@@ -2,53 +2,50 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-import dataclasses
-
 from collections.abc import Callable
-from threading import Event
+from dataclasses import dataclass
 from typing import Any, override
-from gi.repository import Adw, GLib
+from gi.repository import Adw
 from sbcc_framework import PresenterLock, Regex
 from sbcc_framework.feature import CompiledFeature, BooleanResponse
 from sbcc_framework.presenter import Chooser, Presenter, ProgressBar
+from sbcc_gui import SyncResult, on_gtk_thread
 from sbcc_gui.presenter.chooser import GUIChooser
 from sbcc_gui.presenter.progressbar import GUIProgressBar
 from sbcc_gui.widget.dialog import BooleanDialog, InputDialog, TextDialog, PasswordDialog
 from sbcc_gui.window import Toastable
+from sbcc_util import require_not_none
 
 
-@dataclasses.dataclass
+@dataclass
 class GUIPresenter(PresenterLock, Presenter):
     main_window: Toastable
     compiled: CompiledFeature
-    cancel_func: Callable[..., Any]
+    cancel_func: Callable[[], Any]
 
     @override
+    @on_gtk_thread()
     def _show_text(self, text: str) -> None:
-        GLib.idle_add(lambda: self.main_window.show_toast(Adw.Toast(
+        self.main_window.show_toast(Adw.Toast(
             title=text,
             timeout=5
-        )))
+        ))
 
     @override
     def _show_prompt_text(self, prompt_text: str) -> None:
         self.block()
 
-        def show_dialog(text: str, _event: Event, _result: list[bool]) -> None:
-            def cancel() -> None:
-                _result[0] = False
-                _event.set()
-
-            dialog = TextDialog(heading=self.compiled.display_name, body=text, callback=_event.set,
-                                cancel_func=cancel)
+        @on_gtk_thread()
+        def show_dialog(text: str, _sync: SyncResult) -> None:
+            dialog = TextDialog(heading=self.compiled.display_name, body=text,
+                                callback=_sync.set, cancel_func=_sync.cancel)
             dialog.choose(self.main_window.get_window())
 
-        result: list[bool] = [True]
-        event = Event()
-        GLib.idle_add(show_dialog, prompt_text, event, result)
-        event.wait()
+        sync = SyncResult()
+        show_dialog(prompt_text, sync)
+        result = sync.get()
 
-        if not result[0]:
+        if result.is_cancelled():
             self.cancel_func()
 
         self.unblock()
@@ -58,30 +55,23 @@ class GUIPresenter(PresenterLock, Presenter):
                              destructive: BooleanResponse) -> bool:
         self.block()
 
-        def show_dialog(text: str, _event: Event, _result: list[bool]) -> None:
-            def apply(choice: bool) -> None:
-                _result[0] = choice
-                _event.set()
-
-            def cancel() -> None:
-                _result[1] = False
-                _event.set()
-
-            dialog = BooleanDialog(heading=self.compiled.display_name, body=text, callback=apply, default=default,
-                                   suggested=suggested, destructive=destructive, cancel_func=cancel)
+        @on_gtk_thread()
+        def show_dialog(text: str, _sync: SyncResult[bool]) -> None:
+            dialog = BooleanDialog(heading=self.compiled.display_name, body=text,
+                                   default=default, suggested=suggested, destructive=destructive,
+                                   callback=_sync.set, cancel_func=_sync.cancel)
             dialog.choose(self.main_window.get_window())
 
-        result: list[bool] = [False, True]
-        event = Event()
-        GLib.idle_add(show_dialog, prompt_text, event, result)
-        event.wait()
+        sync = SyncResult[bool]()
+        show_dialog(prompt_text, sync)
+        result = sync.get()
 
-        if not result[1]:
+        if result.is_cancelled():
             self.cancel_func()
 
         self.unblock()
 
-        return result[0]
+        return require_not_none(result.value())
 
     @override
     def _show_prompt_input(self, prompt_text: str, prompt_regex: Regex | None) -> str:
@@ -94,31 +84,23 @@ class GUIPresenter(PresenterLock, Presenter):
     def __show_prompt_str(self, dialog_type: type[InputDialog], prompt_text: str, prompt_regex: Regex | None) -> str:
         self.block()
 
-        def show_dialog(text: str, _event: Event, _result: list[Any]) -> None:
-            def apply(choice: str) -> None:
-                _result[0] = choice
-                _event.set()
-
-            def cancel() -> None:
-                _result[1] = False
-                _event.set()
-
-            dialog = dialog_type(heading=self.compiled.display_name, body=text, callback=apply, regex=prompt_regex,
-                                 cancel_func=cancel)
+        @on_gtk_thread()
+        def show_dialog(text: str, _sync: SyncResult[str]) -> None:
+            dialog = dialog_type(heading=self.compiled.display_name, body=text, regex=prompt_regex,
+                                 callback=_sync.set, cancel_func=_sync.cancel)
             dialog.present(self.main_window.get_window())
             dialog.focus_input()
 
-        result: list[Any] = ["", True]
-        event = Event()
-        GLib.idle_add(show_dialog, prompt_text, event, result)
-        event.wait()
+        sync = SyncResult[str]()
+        show_dialog(prompt_text, sync)
+        result = sync.get()
 
-        if not result[1]:
+        if result.is_cancelled():
             self.cancel_func()
 
         self.unblock()
 
-        return result[0]
+        return require_not_none(result.value())
 
     @override
     def create_progress_bar(self) -> ProgressBar:

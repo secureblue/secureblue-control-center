@@ -4,7 +4,6 @@
 
 from typing import cast
 from gi.repository import Adw
-from sbcc_framework.feature import CompiledFeature
 
 
 class Toastable:
@@ -22,6 +21,3 @@ class Toastable:
 
     def get_window(self) -> Adw.ApplicationWindow:
         return cast(Adw.ApplicationWindow, cast(object, self))
-
-    def show_error_and_exit(self, feature: CompiledFeature, e: Exception) -> None:
-        raise NotImplementedError
