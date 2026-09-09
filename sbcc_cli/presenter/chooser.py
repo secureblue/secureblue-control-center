@@ -10,7 +10,7 @@ from getpass import getpass
 from typing import Final, override
 from sbcc_framework.presenter.chooser import Chooser
 from sbcc_util import gettext_marker, ANSI_BACKGROUND_BLUE, ANSI_RESET, ANSI_CURSOR_UP, ANSI_CLEAR_LINE, \
-    ANSI_STRIKETHROUGH, ANSI_RED, require_not_none
+    ANSI_STRIKETHROUGH, ANSI_RED
 
 _: Final[Callable[[str], str]] = gettext_marker()
 
@@ -51,10 +51,10 @@ class CLIChooser(Chooser):
         keys = list(self._options.keys())
         length = len(self._options)
 
-        cursor: int | None = 0 if default is None else None
+        cursor: int = 0 if default is None else -1
         while True:
             for i, display_name in enumerate(self._options.values()):
-                if cursor is None and default == keys[i]:
+                if cursor is -1 and default == keys[i]:
                     cursor = i
 
                 print("   >" if cursor == i else "    ", end=" ")
@@ -69,7 +69,7 @@ class CLIChooser(Chooser):
                 if selection == readchar.key.ENTER:
                     print()
                     self._presenter.unblock()
-                    return keys[require_not_none(cursor)]
+                    return keys[cursor]
                 elif selection == readchar.key.UP:
                     if cursor == 0:
                         cursor = length - 1
