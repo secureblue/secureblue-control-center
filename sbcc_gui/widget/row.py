@@ -66,7 +66,7 @@ class FeatureRow[T: Adw.ActionRow]:
         def show_error_dialog(*__) -> None:
             dialog = ErrorDialog(
                 heading=_("Fatal error"),
-                body=(_('The feature "{0}" has been{1} disabled due to an unexpected fatal error.')
+                body=(_('The feature "{0}" has been {1} disabled due to an unexpected fatal error.')
                       + " "
                       + _("An application restart is necessary to attempt to restore functionality of the feature.")
                       + "\n\n"
