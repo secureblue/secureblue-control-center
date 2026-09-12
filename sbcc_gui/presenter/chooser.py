@@ -15,7 +15,6 @@ from sbcc_util import require_not_none
 class GUIChooser(Chooser):
     main_window: Toastable
     compiled: CompiledFeature
-    context: str = ""
 
     def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature):
         super().__init__(presenter)
@@ -24,20 +23,13 @@ class GUIChooser(Chooser):
         self.compiled = compiled
 
     @override
-    def get_context(self) -> str:
-        return self.context
-
-    @override
-    def set_context(self, context: str) -> None:
-        self.context = context
-
-    @override
     def _choose(self, default: str | None) -> str:
         self._presenter.block()
 
         @on_gtk_thread()
         def show_dialog(_sync: SyncResult[str]) -> None:
-            dialog = ChooserDialog(heading=self.compiled.display_name, body=self.context,
+            context = self._context if self._context is not None else ""
+            dialog = ChooserDialog(heading=self.compiled.display_name, body=context,
                                    callback=_sync.set, cancel_func=_sync.cancel)
 
             for key, value in self._options.items():
@@ -66,7 +58,8 @@ class GUIChooser(Chooser):
 
         @on_gtk_thread()
         def show_dialog(_sync: SyncResult[list[str]]) -> None:
-            dialog = MultiChooserDialog(heading=self.compiled.display_name, body=self.context,
+            context = self._context if self._context is not None else ""
+            dialog = MultiChooserDialog(heading=self.compiled.display_name, body=context,
                                         min_choices=min_choices, max_choices=max_choices,
                                         incompatible_options=incompatible_options,
                                         callback=_sync.set, cancel_func=_sync.cancel)

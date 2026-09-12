@@ -16,21 +16,22 @@ class Chooser(ABC):
     """
 
     _presenter: PresenterLock
+    _context: str | None = None
     _options: dict[str, str] = field(default_factory=dict)
 
-    @abstractmethod
-    def get_context(self) -> str:
+    def get_context(self) -> str | None:
         """
         Retrieves the context of this chooser.
         :returns: The context of this chooser.
         """
+        return self._context
 
-    @abstractmethod
-    def set_context(self, context: str) -> None:
+    def set_context(self, context: str | None) -> None:
         """
         Sets the context of this chooser.
         :param context: The context.
         """
+        self._context = context if context != "" else None
 
     def get_options(self) -> dict[str, str]:
         """

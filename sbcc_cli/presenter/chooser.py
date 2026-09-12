@@ -30,23 +30,13 @@ def _print_err_prompt(message: str) -> None:
 
 
 class CLIChooser(Chooser):
-    context: str | None = None
-
-    @override
-    def get_context(self) -> str:
-        return self.context if self.context is not None else ""
-
-    @override
-    def set_context(self, context: str) -> None:
-        self.context = context if context != "" else None
-
     @override
     def _choose(self, default: str | None) -> str:
         self._presenter.block()
 
         print()
-        if self.context is not None:
-            print(self.context)
+        if self._context is not None:
+            print(self._context)
 
         keys = list(self._options.keys())
         length = len(self._options)
@@ -91,8 +81,8 @@ class CLIChooser(Chooser):
         self._presenter.block()
 
         print()
-        if self.context is not None:
-            print(self.context)
+        if self._context is not None:
+            print(self._context)
 
         keys = list(self._options.keys())
         length = len(self._options)
