@@ -108,8 +108,4 @@ class GUIPresenter(PresenterLock, Presenter):
 
     @override
     def create_chooser(self) -> Chooser:
-        return GUIChooser(self, self.main_window, self.compiled)
-
-    @override
-    def cancel(self) -> None:
-        self.cancel_func()
+        return GUIChooser(self, self.main_window, self.compiled, self.cancel_func)

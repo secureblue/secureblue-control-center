@@ -2,7 +2,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-from typing import override
+from collections.abc import Callable
+from typing import override, Any
 from sbcc_framework import PresenterLock
 from sbcc_framework.feature import CompiledFeature
 from sbcc_framework.presenter import Chooser
@@ -15,12 +16,15 @@ from sbcc_util import require_not_none
 class GUIChooser(Chooser):
     main_window: Toastable
     compiled: CompiledFeature
+    cancel_func: Callable[[], Any]
 
-    def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature):
+    def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature,
+                 cancel_func: Callable[[], Any]):
         super().__init__(presenter)
 
         self.main_window = main_window
         self.compiled = compiled
+        self.cancel_func = cancel_func
 
     @override
     def _choose(self, default: str | None) -> str:
@@ -45,7 +49,7 @@ class GUIChooser(Chooser):
         result = sync.get()
 
         if result.is_cancelled():
-            self._presenter.cancel()
+            self.cancel_func()
 
         self._presenter.unblock()
 
@@ -78,7 +82,7 @@ class GUIChooser(Chooser):
         result = sync.get()
 
         if result.is_cancelled():
-            self._presenter.cancel()
+            self.cancel_func()
 
         self._presenter.unblock()
 

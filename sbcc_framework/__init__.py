@@ -30,10 +30,6 @@ class PresenterLock:
             msg = "Illegal call on blocked presenter"
             raise RuntimeError(msg)
 
-    def cancel(self) -> None:
-        msg = "Cancelling is not implemented for this presenter"
-        raise NotImplementedError(msg)
-
 
 class Regex:
     """
