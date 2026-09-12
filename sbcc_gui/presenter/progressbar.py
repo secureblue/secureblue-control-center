@@ -18,11 +18,6 @@ class GUIProgressBar(ProgressBar):
     main_window: Toastable
     compiled: CompiledFeature
     dialog: ProgressDialog
-    active: bool = False
-    progress: float = 0
-    context: str = ""
-    pulse: bool = False
-    show_percentage: bool = False
     pulse_thread: Thread | None = None
 
     def __init__(self, presenter: PresenterLock, main_window: Toastable, compiled: CompiledFeature):
@@ -39,10 +34,10 @@ class GUIProgressBar(ProgressBar):
 
     @override
     def _show(self) -> None:
-        if self.active:
+        if self._active:
             msg = "Progressbar is already active"
             raise RuntimeError(msg)
-        self.active = True
+        self._active = True
 
         self._presenter.block()
 
@@ -52,15 +47,15 @@ class GUIProgressBar(ProgressBar):
 
         do_show()
 
-        if self.pulse:
+        if self._pulse:
             self.__start_pulse_thread()
 
     @override
     def close(self) -> None:
-        if not self.active:
+        if not self._active:
             msg = "Progressbar is not active"
             raise RuntimeError(msg)
-        self.active = False
+        self._active = False
 
         @on_gtk_thread(sync=True)
         def do_close() -> None:
@@ -71,73 +66,49 @@ class GUIProgressBar(ProgressBar):
         self._presenter.unblock()
 
     @override
-    def is_active(self) -> bool:
-        return self.active
-
-    @override
-    def get_progress(self) -> float:
-        return self.progress
+    def set_context(self, context: str | None) -> None:
+        self._context = context if context != "" else None
+        GLib.idle_add(lambda: self.dialog.set_body(self._context if self._context is not None else ""))
 
     @override
     def set_progress(self, value: float) -> None:
-        self.pulse = False
-        self.progress = min(value, 1)
-        GLib.idle_add(lambda: self.dialog.get_progress_bar().set_fraction(self.progress))
-
-    @override
-    def add_progress(self, value: float) -> None:
-        self.set_progress(self.get_progress() + value)
-
-    @override
-    def get_context(self) -> str:
-        return self.context
-
-    @override
-    def set_context(self, context: str) -> None:
-        self.context = context
-        GLib.idle_add(lambda: self.dialog.set_body(self.context))
-
-    @override
-    def get_pulse(self) -> bool:
-        return self.pulse
-
-    @override
-    def set_pulse(self, mode: bool) -> None:
-        if mode == self.pulse:
-            return
-
-        self.pulse = mode
-        if self.pulse:
-            if self.active:
-                self.__start_pulse_thread()
-        else:
-            self.set_progress(self.progress)
-
-    def __start_pulse_thread(self) -> None:
-        if self.pulse_thread is None or not self.pulse_thread.is_alive():
-            self.pulse_thread = Thread(name="sbcc_gui:progressbar", target=self.__tick_pulse, daemon=True).start()
-
-    def __tick_pulse(self) -> None:
-        if self.show_percentage:
-            self.__set_show_percentage(False)
-
-        while self.active and self.pulse:
-            GLib.idle_add(lambda: self.dialog.get_progress_bar().pulse())
-            sleep(0.2)
-
-        if self.show_percentage:
-            self.__set_show_percentage(True)
-
-    @override
-    def get_show_percentage(self) -> bool:
-        return self.show_percentage
+        self._pulse = False
+        self._progress = min(value, 1)
+        GLib.idle_add(lambda: self.dialog.get_progress_bar().set_fraction(self._progress))
 
     @override
     def set_show_percentage(self, value: bool) -> None:
-        self.show_percentage = value
-        if not self.pulse:
-            self.__set_show_percentage(self.show_percentage)
+        self._show_percentage = value
+        if not self._pulse:
+            self.__set_show_percentage(self._show_percentage)
 
     @on_gtk_thread()
     def __set_show_percentage(self, value: bool) -> None:
         self.dialog.set_show_percentage(value)
+
+    @override
+    def set_pulse(self, mode: bool) -> None:
+        if mode == self._pulse:
+            return
+
+        self._pulse = mode
+        if self._pulse:
+            if self._active:
+                self.__start_pulse_thread()
+        else:
+            self.set_progress(self._progress)
+
+    def __start_pulse_thread(self) -> None:
+        if self.pulse_thread is None or not self.pulse_thread.is_alive():
+            self.pulse_thread = Thread(name="sbcc_gui:progressbar:pulse", target=self.__tick_pulse, daemon=True).start()
+
+    def __tick_pulse(self) -> None:
+        if self._show_percentage:
+            self.__set_show_percentage(False)
+
+        while self._active and self._pulse:
+            GLib.idle_add(lambda: self.dialog.get_progress_bar().pulse())
+            sleep(0.2)
+
+        if self._show_percentage:
+            self.__set_show_percentage(True)

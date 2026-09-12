@@ -14,6 +14,11 @@ class ProgressBar(ABC):
     """
 
     _presenter: PresenterLock
+    _active: bool = False
+    _context: str | None = None
+    _progress: float = 0
+    _show_percentage: bool = False
+    _pulse: bool = False
 
     def show(self) -> None:
         """
@@ -35,19 +40,33 @@ class ProgressBar(ABC):
         The progress bar may not be reused after this method has been called.
         """
 
-    @abstractmethod
     def is_active(self) -> bool:
         """
         Retrieves whether this progress bar is active. (i.e. currently being shown to the user)
         :returns: Whether this progress bar is active.
         """
+        return self._active
+
+    def get_context(self) -> str | None:
+        """
+        Retrieves the context shown above the progress bar.
+        :returns: The current context.
+        """
+        return self._context
 
     @abstractmethod
+    def set_context(self, context: str | None) -> None:
+        """
+        Sets the context shown above the progress bar.
+        :param context: The context to show.
+        """
+
     def get_progress(self) -> float:
         """
         Retrieves the progress of this progress bar, from 0.0 to 1.0.
         :returns: The current progress.
         """
+        return self._progress
 
     @abstractmethod
     def set_progress(self, value: float) -> None:
@@ -56,33 +75,32 @@ class ProgressBar(ABC):
         :param value: The progress to show.
         """
 
-    @abstractmethod
     def add_progress(self, value: float) -> None:
         """
         Increments the progress of this progress bar.
         :param value: The progress to add.
         """
+        self.set_progress(self.get_progress() + value)
+
+    def get_show_percentage(self) -> bool:
+        """
+        Retrieves whether this progress bar should display its progress percentage.
+        """
+        return self._show_percentage
 
     @abstractmethod
-    def get_context(self) -> str:
+    def set_show_percentage(self, value: bool) -> None:
         """
-        Retrieves the context shown above the progress bar.
-        :returns: The current context.
-        """
-
-    @abstractmethod
-    def set_context(self, context: str) -> None:
-        """
-        Sets the context shown above the progress bar.
-        :param context: The context to show.
+        Sets whether this progress bar should display its progress percentage. Defaults to false.
+        :param value: Whether to show the progress percentage.
         """
 
-    @abstractmethod
     def get_pulse(self) -> bool:
         """
         Retrieves the pulse mode of this progress bar.
         :returns: The current pulse mode.
         """
+        return self._pulse
 
     @abstractmethod
     def set_pulse(self, mode: bool) -> None:
@@ -90,17 +108,4 @@ class ProgressBar(ABC):
         Sets the pulse mode of this progress bar.\n
         In pulse mode no specific progress will be shown, useful to indicate loading of unknown progress.
         :param mode: The pulse mode (on/off).
-        """
-
-    @abstractmethod
-    def get_show_percentage(self) -> bool:
-        """
-        Retrieves whether this progress bar should display its progress percentage.
-        """
-
-    @abstractmethod
-    def set_show_percentage(self, value: bool) -> None:
-        """
-        Sets whether this progress bar should display its progress percentage. Defaults to false.
-        :param value: Whether to show the progress percentage.
         """
