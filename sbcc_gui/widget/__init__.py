@@ -75,7 +75,7 @@ class ErrorDetails(Adw.Bin):
                 left_margin=10
             ),
             min_content_width=500,
-            vscrollbar_policy=Gtk.PolicyType.NEVER
+            propagate_natural_height=True
         ))
         list_box.append(error_details)
 
