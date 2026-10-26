@@ -50,13 +50,13 @@ sdist = { url = "https://files.pythonhosted.org/packages/da/61/978c5fbca34f10a90
 
 [[package]]
 name = "pygobject-stubs"
-version = "2.17.0"
+version = "2.20.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pygobject" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8c/be/bf49399ad2e788121f595903a56447d4b778d67acbb01ecfc1c6d5cf91f6/pygobject_stubs-2.17.0.tar.gz", hash = "sha256:66884d26974dd7fb99a8bc5972b5bdeb4b7399ecc7ac53913a6cafa6ab21491f", size = 1010510, upload-time = "2026-03-20T17:08:59.656Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/5b/13/20718103f5e697c5b6b4d91fd32f0a4e3f4f6e3c4990ffe4d5c3bf5ec598/pygobject_stubs-2.20.0.tar.gz", hash = "sha256:fd61ebf27a893e3b162e0dfb84d80de92ef33f8fdf144298e178239934bce8df", size = 1081385, upload-time = "2026-10-19T18:38:19.621Z" }
 
 [[package]]
 name = "readchar"
@@ -85,7 +85,7 @@ dependencies = [
 requires-dist = [
     { name = "click", specifier = "==8.3.3" },
     { name = "pygobject", specifier = "==3.56.3" },
-    { name = "pygobject-stubs", specifier = ">=2.17.0" },
+    { name = "pygobject-stubs", specifier = ">=2.20.0" },
     { name = "readchar", specifier = "==4.0.5" },
 ]
 

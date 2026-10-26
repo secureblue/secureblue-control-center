@@ -9,7 +9,7 @@ dependencies = [
     "click==8.3.3",
     "readchar==4.0.5",
     "pygobject==3.56.3",
-    "pygobject-stubs>=2.17.0",
+    "pygobject-stubs>=2.20.0",
 ]
 
 [tool.ruff]

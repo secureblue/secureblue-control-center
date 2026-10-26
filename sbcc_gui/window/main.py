@@ -17,7 +17,7 @@ from sbcc_gui.page.preferences import PreferencesPage
 from sbcc_gui.presenter import GUIPresenter
 from sbcc_gui.widget import Banner
 from sbcc_gui.widget.dialog import ErrorDialog, TextDialog
-from sbcc_gui.widget.row import SidebarRow, PreferenceRow, MultiPreferenceRow, FeatureRow, UtilityRow
+from sbcc_gui.widget.row import PreferenceRow, MultiPreferenceRow, FeatureRow, UtilityRow
 from sbcc_gui.widget.sidebar import Sidebar
 from sbcc_gui.window import Toastable
 from sbcc_util import gettext_marker, SBCC_VERSION, SBCC_ISSUES_PAGE, SBCC_WEBSITE, SBCC_APPLICATION_ID, \
@@ -96,24 +96,24 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         # Home Page
         self.stack.add_named(HomePage(), "home")
         self.sidebar.add_entry(
-            SidebarRow(name="home", label=_("Home"), icon_name="go-home-symbolic"),
-            lambda: self.stack.set_visible_child_name("home")
+            label=_("Home"), icon_name="go-home-symbolic",
+            callback=lambda: self.stack.set_visible_child_name("home")
         )
 
         # Preferences Page
         self.preferences_page = PreferencesPage(main_window=self)
         self.stack.add_named(self.preferences_page, "preferences")
         self.sidebar.add_entry(
-            SidebarRow(name="preferences", label=_("Preferences"), icon_name="preferences-system-symbolic"),
-            lambda: self.stack.set_visible_child_name("preferences")
+            label=_("Preferences"), icon_name="preferences-system-symbolic",
+            callback=lambda: self.stack.set_visible_child_name("preferences")
         )
 
         # Utilities Page
         self.utilities_page = UtilitiesPage(main_window=self)
         self.stack.add_named(self.utilities_page, "utilities")
         self.sidebar.add_entry(
-            SidebarRow(name="utilities", label=_("Utilities"), icon_name="utilities-terminal-symbolic"),
-            lambda: self.stack.set_visible_child_name("utilities")
+            label=_("Utilities"), icon_name="utilities-terminal-symbolic",
+            callback=lambda: self.stack.set_visible_child_name("utilities")
         )
 
     @override

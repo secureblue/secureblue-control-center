@@ -14,17 +14,6 @@ from sbcc_util import gettext_marker, require_not_none
 _: Final[Callable[[str], str]] = gettext_marker()
 
 
-class SidebarRow(Gtk.ListBoxRow):
-    def __init__(self, name: str, label: str, icon_name: str):
-        super().__init__(name=name, height_request=45)
-
-        box = Gtk.Box(spacing=5)
-        box.append(Gtk.Image(icon_name=icon_name))
-        box.append(Gtk.Label(label=label, xalign=0))
-
-        self.set_child(box)
-
-
 class FeatureRow[T: Adw.ActionRow]:
     row: T
     compiled: CompiledFeature
