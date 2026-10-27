@@ -76,13 +76,14 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
 
         splitview = Adw.NavigationSplitView()
         splitview.set_content(Adw.NavigationPage(title=application_name, child=toolbar_view))
-        self.sidebar = Sidebar()
-        splitview.set_sidebar(Adw.NavigationPage(title=_("Menu"), child=self.sidebar))
-        self.set_content(splitview)
 
         self.stack = Adw.ViewStack()
         self.stack.set_enable_transitions(True)
         self.stack.set_transition_duration(150)
+
+        self.sidebar = Sidebar(stack=self.stack)
+        splitview.set_sidebar(Adw.NavigationPage(title=_("Menu"), child=self.sidebar))
+        self.set_content(splitview)
 
         overlay = Gtk.Overlay()
 
@@ -94,27 +95,18 @@ class MainWindow(Adw.ApplicationWindow, Toastable):
         self.toast_overlay.set_child(overlay)
 
         # Home Page
-        self.stack.add_named(HomePage(), "home")
-        self.sidebar.add_entry(
-            label=_("Home"), icon_name="go-home-symbolic",
-            callback=lambda: self.stack.set_visible_child_name("home")
-        )
+        self.stack.add_titled_with_icon(HomePage(), "home",
+                                        title=_("Home"), icon_name="go-home-symbolic")
 
         # Preferences Page
         self.preferences_page = PreferencesPage(main_window=self)
-        self.stack.add_named(self.preferences_page, "preferences")
-        self.sidebar.add_entry(
-            label=_("Preferences"), icon_name="preferences-system-symbolic",
-            callback=lambda: self.stack.set_visible_child_name("preferences")
-        )
+        self.stack.add_titled_with_icon(self.preferences_page, "preferences",
+                                        title=_("Preferences"), icon_name="preferences-system-symbolic")
 
         # Utilities Page
         self.utilities_page = UtilitiesPage(main_window=self)
-        self.stack.add_named(self.utilities_page, "utilities")
-        self.sidebar.add_entry(
-            label=_("Utilities"), icon_name="utilities-terminal-symbolic",
-            callback=lambda: self.stack.set_visible_child_name("utilities")
-        )
+        self.stack.add_titled_with_icon(self.utilities_page, "utilities",
+                                        title=_("Utilities"), icon_name="utilities-terminal-symbolic")
 
     @override
     @on_gtk_thread()
